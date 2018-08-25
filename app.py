@@ -13,6 +13,7 @@ import datetime
 import io
 
 import regs # .py com as funções de simplificação
+import plot_functions as plotter
 
 app = dash.Dash()
 server = app.server
@@ -22,6 +23,18 @@ N_TABLES = 100
 app.scripts.config.serve_locally=True
 app.css.config.serve_locally = True
 #app.config['suppress_callback_exceptions'] = True
+
+#--------------------------PARÂMETROS----------------------------#
+
+max_width_maindiv = '70vw'
+min_width_maindiv = '1px'
+sidemenu_size = ['25vw', '100vh']
+
+
+
+
+
+#----------------------------------------------------------------#
 
 
 
@@ -36,47 +49,6 @@ app.css.append_css({"external_url": "/static/{}".format('style.css')})
 app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
 
 
-def generate_plot2d(x_data, y_data, plot_type, plot_name, plot_title):
-    return{'data': [
-        {'x': x_data, 'y': y_data, 'type': plot_type, 'name': plot_name},
-    ],
-    'layout': {
-        'title': plot_title
-    }
-    }
-
-def generate_plot2d_2(x_data, y_data, plot_type, plot_name, plot_title, x_data2, y_data2, plot_type2, plot_name2):
-    return{'data': [
-        {'x': x_data, 'y': y_data, 'type': plot_type, 'name': plot_name},
-        {'x': x_data2, 'y': y_data2, 'type': plot_type2, 'name': plot_name2}
-    ],
-    'layout': {
-        'title': plot_title
-    }
-    }
-
-
-
-def generate_plot3d(x_data, y_data, z_data, plot_type, plot_text, marker_data,  plot_name, plot_title):
-
-    return{'data': [
-        {'x': x_data, 'y': y_data, 'z': z_data, 'type': plot_type, 'text': plot_text, 'marker': marker_data, 'name': plot_name},
-    ],
-    'layout': {
-        'title': plot_title
-    }
-    }
-
-def generate_plot3d_2(x_data, y_data, z_data, plot_type, plot_text, marker_data,  plot_name, plot_title, x_data2, y_data2, z_data2, plot_type2, plot_text2, marker_data2,  plot_name2, plot_title2):
-
-    return{'data': [
-        {'x': x_data, 'y': y_data, 'z': z_data, 'type': plot_type, 'text': plot_text, 'marker': marker_data, 'name': plot_name},
-        {'x': x_data2, 'y': y_data2, 'z': z_data2, 'type': plot_type2, 'text': plot_text2, 'marker': marker_data2, 'name': plot_name2}
-    ],
-    'layout': {
-        'title': plot_title
-    }
-    }
 
 
 def parse_upload_contents(contents, filename):
@@ -98,21 +70,91 @@ def parse_upload_contents(contents, filename):
 
     return table_data
 
-RECORDS = [
-    {'X': '', 'Y': '', 'Z': ''}
-    for i in range(N_TABLES)
-]
 
-#logo_img = 'logo.png'
-#encoded_logo = base64.b64encode(open(logo_img, 'rb').read())
+
 
 app.layout = html.Div(children = [
 
-    #html.Div([html.Img(src='data:image/png;base64,{}'.format(encoded_logo))]),
+
+    html.Link(rel='stylesheet', href='/static/style.css'),
+    
     html.Div(id='header_img', style = {'width': '320px', 'height': '80px'}),
+
+    html.Div(id='sidemenu',
+         style = {'backgroundColor': 'white',
+                  'float': 'left',
+                  'width': sidemenu_size[0],
+                  'height': sidemenu_size[1],
+                  'borderRadius': '5px',
+                  'borderTop': '2px solid #1975fa',
+                  'borderRight': '1px solid #d6d6d6',
+                  'borderLeft': '1px solid #d6d6d6',
+                  'margin': '0 auto',
+                  'padding': '10px'},
+         children = [
+            html.H4("Tipo do gráfico base"),
+            dcc.Dropdown(
+                 id = 'type_mainplot',
+                 options = [
+                     {'label': 'Scatter', 'value': 'scatter'},
+                     {'label': 'Line', 'value': 'line'},
+                     {'label': 'Bar', 'value': 'bar'},
+                     {'label': 'Bubble', 'value': 'bubble'},
+                    ],
+                 value = 'scatter',
+                 clearable = False
+             ),
+            html.H4("Tipo do gráfico 2"),
+            dcc.Dropdown(
+                 id = 'type_plot2',
+                 options = [
+                     {'label': 'Scatter', 'value': 'scatter'},
+                     {'label': 'Line', 'value': 'line'},
+                     {'label': 'Bar', 'value': 'bar'}
+                    ],
+                 value = 'scatter',
+                 clearable = False
+             ),
+
+            html.H4("Marcador do gráfico 1"),
+            dcc.Dropdown(
+                 id = 'type_marker1',
+                 options = [
+                     {'label': 'Lines', 'value': 'lines'},
+                     {'label': 'Bubble', 'value': 'markers'},
+                    ],
+                 value = 'lines',
+                 clearable = False
+             ),
+            html.H4("Marcador do gráfico 2"),
+            dcc.Dropdown(
+                 id = 'type_marker2',
+                 options = [
+                     {'label': 'Lines', 'value': 'lines'},
+                     {'label': 'Bubble', 'value': 'markers'},
+                    ],
+                 value = 'lines',
+                 clearable = False
+             ),
+            
+            html.H4("Método de linearização"),
+            dcc.Dropdown(
+                 id = 'type_regs',
+                 options = [
+                     {'label': 'MMQ', 'value': 'lsm'},
+                     {'label': 'Regressão Linear', 'value': 'linear'},
+                     {'label': 'Regressão Logística', 'value': 'log'}
+                    ],
+                 value = 'lsm',
+                 clearable = True
+             ),
+            
+            html.Button('Refresh', id='reg_button', style = {'backgroundColor': '#1975fa', 'color': 'white', 'width': '100%', 'marginTop': '30px'}),
+    ]),
     
     dcc.Tabs(id='tabs', vertical=False, children = [
-        dcc.Tab(label = 'Graph', children = [
+        
+        dcc.Tab(label = 'Graph', id='graph', children = [
 
             html.Link(rel='stylesheet', href='/static/style.css'),
 
@@ -126,8 +168,6 @@ app.layout = html.Div(children = [
                         html.A('selecione o arquivo')
                     ]),
                     style={
-                        'width': '100%',
-                        'height': '60px',
                         'lineHeight': '60px',
                         'borderWidth': '1px',
                         'borderStyle': 'dashed',
@@ -158,73 +198,25 @@ app.layout = html.Div(children = [
 
             dcc.Graph(id='output_graph', style = {'width': '100%', 'height': '100%', 'display': 'inline-block', 'borderLeft': '1px solid #d6d6d6', 'borderRight': '1px solid #d6d6d6', 'borderBottom': '1px solid #d6d6d6'}),
 
-            html.Button(id='reg_button', style = {'borderBottom': '2px solid #d6d6d6'}, children= [html.H3('Botão Regs')]),
-
-            html.Div([
-                html.Div(id='content'),
-                dcc.Location(id='location', refresh=False),
-                html.Div(dt.DataTable(rows=[{}]), style={'display': 'none'})
             
 
-            ])
             ]),
+
+            dcc.Tab(label = '', children = [
+                html.Link(rel='stylesheet', href='/static/style.css'),
+                html.H2("Bem vindo ao EasyML"),
+                html.Pre("""Para usar o sistema, aperte em graph acima
+                        Se buscar ajuda, clique aqui
+
+                         """),
+                ],
+
+                disabled = True),
+            ],
+             
         
-        dcc.Tab(label = 'Config', children = [
-            html.Div([
-                html.H1('Alguma coisa')
-                ]),
-            html.H3('Tipo do gráfico 2d'),
-            html.Br(),
-            dcc.Dropdown(
-                options = [
-                    {'label': 'Scatter', 'value': 'scatter'},
-                    {'label': 'opcao 2', 'value': 'opcao2'},
-                    {'label': 'opcao 3', 'value': 'opcao3'},
-                    ],
-                value = 'tipo2d',),
-            html.H3('Tipo do gráfico 3d'),
-            html.Br(),
-            dcc.Dropdown(
-                options = [
-                    {'label': 'Scatter 3d', 'value': 'scatter3d'},
-                    {'label': 'opcao 2', 'value': 'opcao2'},
-                    {'label': 'opcao 3', 'value': 'opcao3'},
-                    ],
-                value = 'tipo3d',),
-            html.Br(),
-            html.Br(),
-            html.Hr(),
-            html.Br(),
-            html.H3('Parâmetro 1'),
-            html.Br(),
-            dcc.Slider(
-                min = 0,
-                max = 9,
-                marks = {i: '{}'.format(i) for i in range(10)},
-                value = 5,
-            ),
-            html.Br(),
-            html.H3('Parâmetro 2'),
-            html.Br(),
-            dcc.Slider(
-                min = 0,
-                max = 9,
-                marks = {i: '{}'.format(i) for i in range(10)},
-                value = 5,
-            ),
-            html.Br(),
-            html.H3('Parâmetro 3'),
-            html.Br(),
-            dcc.Slider(
-                min = 0,
-                max = 9,
-                marks = {i: '{}'.format(i) for i in range(10)},
-                value = 5,
-            )
-        ])],
                 
              style={
-                'fontFamily': 'system-ui'
             },
                 content_style={
                 'borderLeft': '1px solid #d6d6d6',
@@ -233,8 +225,8 @@ app.layout = html.Div(children = [
                 'padding': '44px'
             },
                 parent_style={
-                'maxWidth': '1000px',
-                'margin': '0 auto'
+                'maxWidth': max_width_maindiv,
+                'margin': '0 auto',
             }
              )
 ]
@@ -263,13 +255,26 @@ def update_output(contents, filename):
 @app.callback(
     Output(component_id='output_graph', component_property='figure'),
     [Input(component_id='reg_button', component_property='n_clicks'),
-     Input(component_id='datatable', component_property='rows')])
+     Input(component_id='datatable', component_property='rows'),
+     Input(component_id='type_mainplot', component_property='value'),
+     Input(component_id='type_plot2', component_property='value'),
+     Input(component_id='type_regs', component_property='value'),
+     Input(component_id='type_marker1', component_property='value'),
+     Input(component_id='type_marker2', component_property='value')])
 
-def update_figure(n_clicks, rows):
+def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2):
+
+    print('\n---------DEBUG--------------')
+    print(n_clicks, repr(n_clicks))
+    print(rows, repr(rows))
+    print(value, repr(value))
+    print(value2, repr(n_clicks))
+    print(reg_type, repr(reg_type))
     
     if n_clicks is not None and len(rows[0]) is not 0:
 
         # Se tiver clickado uma vez, vai fazer a reg e atualizar o grafico
+        
 
         dff = pandas.DataFrame(rows)
 
@@ -277,20 +282,19 @@ def update_figure(n_clicks, rows):
         y = dff['Y']
         z = dff['Z']
 
-        b,a = regs.least_squares(x,y) ####################################### lembrar de colocar opcao pra escolher
+        print('\n---------DEBUG 2--------------')
+        print(repr(x))
+        print(repr(y))
+        print(repr(z))
 
-        print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-        print(a)
-        print(b)
-        print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
-        x_2 = [i for i in range(int(max(x)))]
-        y_2 = [(a*x_2[i] + b) for i in range(max(x))]
         
 
         if len(z)==0 or all(z[i] == None for i in range(len(z))):
-            return generate_plot2d_2(x, y, 'scatter', 'nome2d', 'titulo2d', x_2, y_2, 'scatter', 'nome2d2')
+            x_2, y_2 = regs.choose_reg(reg_type, x, y)
+            return plotter.generate_plot2d_2(x, y, value, 'nome2d', 'titulo2d', x_2, y_2, value2, 'nome2d2', mode1, mode2)
+
         else:
-            return generate_plot3d(x, y, z, 'scatter3d', None, {'size': '10', 'opacity': '0.7'}, 'nome3d', 'titulo3d')
+            return plotter.generate_plot3d(x, y, z, value+'3d', None, {'size': '10', 'opacity': '0.7'}, 'nome3d', 'titulo3d') ################################### colocar filtro dos tipos de 3d e 2d
 
 
     elif len(rows[0]) is not 0:
@@ -313,11 +317,11 @@ def update_figure(n_clicks, rows):
         print(len(z))
 
         if len(z)==0 or all(z[i] == None for i in range(len(z))):
-            return generate_plot2d(x, y, 'scatter', 'nome2d', 'titulo2d')
+            return plotter.generate_plot2d(x, y, value, 'nome2d', 'titulo2d')
         else:
             #z = [z[i] = 0 for i in range(len(z)) if z[i] == None] ----------------------------------> testar
             
-            return generate_plot3d(x, y, z, 'scatter3d', None, {'size': '10', 'opacity': '0.7'}, 'nome3d', 'titulo3d')
+            return plotter.generate_plot3d(x, y, z, value+'3d', None, {'size': '10', 'opacity': '0.7'}, 'nome3d', 'titulo3d')
 
     else:
         return None
