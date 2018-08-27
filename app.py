@@ -97,23 +97,22 @@ app.layout = html.Div(children = [
                  id = 'type_mainplot',
                  options = [
                      {'label': 'Scatter', 'value': 'scatter'},
-                     {'label': 'Line', 'value': 'line'},
                      {'label': 'Bar', 'value': 'bar'},
-                     {'label': 'Bubble', 'value': 'bubble'},
                     ],
                  value = 'scatter',
-                 clearable = False
+                 clearable = False,
+                 searchable = False
              ),
             html.H4("Tipo do gráfico 2"),
             dcc.Dropdown(
                  id = 'type_plot2',
                  options = [
                      {'label': 'Scatter', 'value': 'scatter'},
-                     {'label': 'Line', 'value': 'line'},
                      {'label': 'Bar', 'value': 'bar'}
                     ],
                  value = 'scatter',
-                 clearable = False
+                 clearable = False,
+                 searchable = False
              ),
 
             html.H4("Marcador do gráfico 1"),
@@ -124,7 +123,8 @@ app.layout = html.Div(children = [
                      {'label': 'Bubble', 'value': 'markers'},
                     ],
                  value = 'lines',
-                 clearable = False
+                 clearable = False,
+                 searchable = False
              ),
             html.H4("Marcador do gráfico 2"),
             dcc.Dropdown(
@@ -134,7 +134,8 @@ app.layout = html.Div(children = [
                      {'label': 'Bubble', 'value': 'markers'},
                     ],
                  value = 'lines',
-                 clearable = False
+                 clearable = False,
+                 searchable = False
              ),
             
             html.H4("Método de linearização"),
@@ -143,10 +144,14 @@ app.layout = html.Div(children = [
                  options = [
                      {'label': 'MMQ', 'value': 'lsm'},
                      {'label': 'Regressão Linear', 'value': 'linear'},
-                     {'label': 'Regressão Logística', 'value': 'log'}
+                     {'label': 'Regressão Logística', 'value': 'logi'},
+                     {'label': 'Regressão Logarítmica', 'value': 'log'},
+                     {'label': 'Regressão Exponencial', 'value': 'exp'},
                     ],
                  value = 'lsm',
-                 clearable = True
+                 clearable = True,
+                 searchable = False,
+                 placeholder = 'Escolha...'
              ),
             
             html.Button('Refresh', id='reg_button', style = {'backgroundColor': '#1975fa', 'color': 'white', 'width': '100%', 'marginTop': '30px'}),
@@ -196,7 +201,7 @@ app.layout = html.Div(children = [
             className = 'container'
             ),
 
-            dcc.Graph(id='output_graph', style = {'width': '100%', 'height': '100%', 'display': 'inline-block', 'borderLeft': '1px solid #d6d6d6', 'borderRight': '1px solid #d6d6d6', 'borderBottom': '1px solid #d6d6d6'}),
+            dcc.Graph(id='output_graph', animate = True, style = {'width': '100%', 'height': '100%', 'display': 'inline-block', 'borderLeft': '1px solid #d6d6d6', 'borderRight': '1px solid #d6d6d6', 'borderBottom': '1px solid #d6d6d6'}),
 
             
 
@@ -291,10 +296,10 @@ def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2):
 
         if len(z)==0 or all(z[i] == None for i in range(len(z))):
             x_2, y_2 = regs.choose_reg(reg_type, x, y)
-            return plotter.generate_plot2d_2(x, y, value, 'nome2d', 'titulo2d', x_2, y_2, value2, 'nome2d2', mode1, mode2)
+            return plotter.generate_plot2d_2(x, y, value, 'Dados', 'Gráfico 2d', x_2, y_2, value2, 'Hipótese', mode1, mode2)
 
         else:
-            return plotter.generate_plot3d(x, y, z, value+'3d', None, {'size': '10', 'opacity': '0.7'}, 'nome3d', 'titulo3d') ################################### colocar filtro dos tipos de 3d e 2d
+            return plotter.generate_plot3d(x, y, z, value+'3d', None, {'size': '10', 'opacity': '0.7'}, 'nome3d', 'Gráfico 3d') ################################### colocar filtro dos tipos de 3d e 2d
 
 
     elif len(rows[0]) is not 0:
@@ -305,23 +310,15 @@ def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2):
         y = dff['Y']
         z = dff['Z']
 
-
-        """
-        for i in range(N_TABLES):
-            z_index = rows[i]['Z']
-            if z_index=='':
-                z_index = '0'
-            z_indices.extend(z_index)"""
         #REVER
         
         print(len(z))
 
         if len(z)==0 or all(z[i] == None for i in range(len(z))):
-            return plotter.generate_plot2d(x, y, value, 'nome2d', 'titulo2d')
+            return plotter.generate_plot2d(x, y, value, 'Dados', 'Gráfico 2d')
         else:
-            #z = [z[i] = 0 for i in range(len(z)) if z[i] == None] ----------------------------------> testar
-            
-            return plotter.generate_plot3d(x, y, z, value+'3d', None, {'size': '10', 'opacity': '0.7'}, 'nome3d', 'titulo3d')
+            z = [0 if z[i] == None else z[i] for i in range(len(z))] #---------------------------------> testar
+            return plotter.generate_plot3d(x, y, z, value+'3d', None, {'size': '10', 'opacity': '0.7'}, 'nome3d', 'Gráfico 3d')
 
     else:
         return None

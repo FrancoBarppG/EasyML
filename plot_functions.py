@@ -35,8 +35,6 @@ def generate_plot2d_2(x_data, y_data, plot_type, plot_name, plot_title, x_data2,
     }
     }
 
-
-
 def generate_plot3d(x_data, y_data, z_data, plot_type, plot_text, marker_data,  plot_name, plot_title):
 
     return{'data': [

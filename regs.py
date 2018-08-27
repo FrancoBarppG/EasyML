@@ -4,6 +4,7 @@ import pandas as pd
 
 
 def choose_reg(dropdown, x, y):
+    #########################################adicionar verificacao das lengths do x e y
     default = [0 for i in range(len(x))]
     if dropdown == 'lsm':
         x_2, y_2  = least_squares(x, y)
@@ -11,8 +12,14 @@ def choose_reg(dropdown, x, y):
     elif dropdown == 'linear':
         x_2, y_2 =  linear_regression(x, y)
         return x_2, y_2
-    elif dropdown == 'log':
+    elif dropdown == 'logi':
         x_2, y_2 = logistic_regression(x, y)
+        return x_2, y_2
+    elif dropdown == 'log':
+        x_2, y_2 = logarithmic_regression(x, y)
+        return x_2, y_2
+    elif dropdown == 'exp':
+        x_2, y_2 = exponential_regression(x, y)
         return x_2, y_2
     else:
         return default, default
@@ -116,6 +123,49 @@ def logistic_regression(df_x, df_y):
 
     return df['X'], df['Y']
 
+def logarithmic_regression(x, y):
+
+    print('\n-------Logarithmic Regression--------')
+
+    #n = len(x)
+    
+    #func_b = (n*sum([y[i]*log(x[i]) for i in range(n)]) - sum(y)*sum([ log(x[i]) for i in range(n)]))/(sum([ log(x[i])**2 for i in range(n)]) - sum([ log(x[i]) for i in range(n)])**2)
+    #func_a = (sum(y) - func_b*sum([ log(x[i]) for i in range(n)]))/n
+
+    ################## TODO: ver se vou colocar opcao de weight no polyfit
+
+    func_a, func_b = np.polyfit( np.log(np.array(x)), np.array(y), 1)
+    x_2 = [i for i in range(int(max(x)))]
+    y_2 = [(func_b + func_a*np.log(i)) if i>=1 else None for i in x_2]
+    
+
+    print('X: {}'.format(x_2))
+    print('Y: {}'.format(y_2))
+
+    return x_2, y_2
+
+def exponential_regression(x, y):
+
+    print('\n-------Exponential Regression--------')
+
+    func_a, func_b = np.polyfit( np.array(x), np.log(np.array(y)), 1)
+    x_2 = [i for i in range(int(max(x)))]
+    y_2 = [(np.exp(func_b) * np.exp(func_a*i)) for i in x_2]
+
+    print('X: {}'.format(x_2))
+    print('Y: {}'.format(y_2))
+
+    return x_2, y_2
+
+
+
+
+
+
+
+
+    
+    
 
 
 
