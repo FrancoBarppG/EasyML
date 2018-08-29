@@ -74,11 +74,14 @@ def parse_upload_contents(contents, filename):
 
 
 app.layout = html.Div(children = [
+    html.Img(src = '/static/miotea.png', style = {'width': '192px', 'height': '108px', 'position': 'absolute', 'float': 'right', 'left': '92%'}),
 
-
-    html.Link(rel='stylesheet', href='/static/style.css'),
+    html.Link(rel = 'stylesheet', href ='/static/style.css'),
     
-    html.Div(id='header_img', style = {'width': '320px', 'height': '80px'}),
+    html.Div(id = 'header_img', style = {'width': '320px', 'height': '80px'}, children = []),
+    
+
+    
 
     html.Div(id='sidemenu',
          style = {'backgroundColor': 'white',
@@ -126,6 +129,19 @@ app.layout = html.Div(children = [
                  clearable = False,
                  searchable = False
              ),
+            
+            html.Div( id = 'size_bubble1_div', children = [
+                html.H4("Tamanho dos círculos do gráfico 1"),
+                dcc.Slider(
+                     id = 'size_bubble1',
+                     min = 1,
+                     max = 15,
+                     step = 0.5,
+                     value = 5
+                 )],
+                style = {'display': 'none'}
+            ),
+
             html.H4("Marcador do gráfico 2"),
             dcc.Dropdown(
                  id = 'type_marker2',
@@ -136,22 +152,44 @@ app.layout = html.Div(children = [
                  value = 'lines',
                  clearable = False,
                  searchable = False
-             ),
-            
+             ),    
+            html.Div( id = 'size_bubble2_div', children = [
+                html.H4("Tamanho dos círculos do gráfico 2"),
+                dcc.Slider(
+                     id = 'size_bubble2',
+                     min = 1,
+                     max = 15,
+                     step = 0.5,
+                     value = 5
+                 )],
+                style = {'display': 'none'}),
             html.H4("Método de linearização"),
+            html.Div( id = 'type_regs_div', children = [
+                dcc.Dropdown(
+                     id = 'type_regs',
+                     options = [
+                         {'label': 'MMQ', 'value': 'lsm'},
+                         {'label': 'Regressão Linear', 'value': 'linear'},
+                         {'label': 'Regressão Logística', 'value': 'logi'},
+                         {'label': 'Regressão Logarítmica', 'value': 'log'},
+                         {'label': 'Regressão Exponencial', 'value': 'exp'},
+                        ],
+                     value = 'lsm',
+                     clearable = True,
+                     searchable = False,
+                     placeholder = 'Escolha...'
+                 )
+                ]),
+            html.H4("2D/3D"),
             dcc.Dropdown(
-                 id = 'type_regs',
+                 id = 'type_dimensions',
                  options = [
-                     {'label': 'MMQ', 'value': 'lsm'},
-                     {'label': 'Regressão Linear', 'value': 'linear'},
-                     {'label': 'Regressão Logística', 'value': 'logi'},
-                     {'label': 'Regressão Logarítmica', 'value': 'log'},
-                     {'label': 'Regressão Exponencial', 'value': 'exp'},
+                     {'label': '2D', 'value': '2d'},
+                     {'label': '3D', 'value': '3d'},
                     ],
-                 value = 'lsm',
-                 clearable = True,
-                 searchable = False,
-                 placeholder = 'Escolha...'
+                 value = '2d',
+                 clearable = False,
+                 searchable = False
              ),
             
             html.Button('Refresh', id='reg_button', style = {'backgroundColor': '#1975fa', 'color': 'white', 'width': '100%', 'marginTop': '30px'}),
@@ -201,7 +239,7 @@ app.layout = html.Div(children = [
             className = 'container'
             ),
 
-            dcc.Graph(id='output_graph', animate = True, style = {'width': '100%', 'height': '100%', 'display': 'inline-block', 'borderLeft': '1px solid #d6d6d6', 'borderRight': '1px solid #d6d6d6', 'borderBottom': '1px solid #d6d6d6'}),
+            dcc.Graph(id='output_graph', animate = False, style = {'width': '100%', 'height': '100%', 'display': 'inline-block', 'borderLeft': '1px solid #d6d6d6', 'borderRight': '1px solid #d6d6d6', 'borderBottom': '1px solid #d6d6d6'}),
 
             
 
@@ -234,7 +272,8 @@ app.layout = html.Div(children = [
                 'margin': '0 auto',
             }
              )
-]
+],
+                      style = {'position': 'relative'}
 )
     
     
@@ -255,7 +294,64 @@ def update_output(contents, filename):
         return [{}]
 
 
-                      
+@app.callback(
+    Output(component_id='type_regs_div', component_property='children'),
+    [Input(component_id='type_dimensions', component_property='value')])
+
+def update_children(value):
+    if value == '2d':
+        return dcc.Dropdown(
+             id = 'type_regs',
+             options = [
+                 {'label': 'MMQ', 'value': 'lsm'},
+                 {'label': 'Regressão Linear', 'value': 'linear'},
+                 {'label': 'Regressão Logística', 'value': 'logi'},
+                 {'label': 'Regressão Logarítmica', 'value': 'log'},
+                 {'label': 'Regressão Exponencial', 'value': 'exp'},
+                ],
+             value = 'lsm',
+             clearable = True,
+             searchable = False,
+             placeholder = 'Escolha...'
+         )
+    elif value == '3d':
+        return dcc.Dropdown(
+             id = 'type_regs',
+             options = [
+                 {'label': 'MMQ 3d', 'value': 'lsm3d'},
+                 {'label': 'Regressão Linear 3d', 'value': 'linear3d'},
+                 {'label': 'Regressão Logística 3d', 'value': 'logi3d'},
+                 {'label': 'Regressão Logarítmica 3d', 'value': 'log3d'},
+                 {'label': 'Regressão Exponencial 3d', 'value': 'exp3d'},
+                ],
+             value = 'lsm3d',
+             clearable = True,
+             searchable = False,
+             placeholder = 'Escolha...'
+         )
+
+
+@app.callback(
+    Output(component_id='size_bubble1_div', component_property='style'),
+    [Input(component_id='type_marker1', component_property='value')])
+
+def update_size_bubble1(mode1):
+    if mode1 == 'markers':
+        return None
+    elif mode1 == 'lines':
+        return {'display': 'none'}
+
+@app.callback(
+    Output(component_id='size_bubble2_div', component_property='style'),
+    [Input(component_id='type_marker2', component_property='value')])
+
+def update_size_bubble2(mode2):
+    if mode2 == 'markers':
+        return None
+    elif mode2 == 'lines':
+        return {'display': 'none'}
+
+#               
 # Atualiza o gráfico se a planilha for editada
 @app.callback(
     Output(component_id='output_graph', component_property='figure'),
@@ -265,16 +361,19 @@ def update_output(contents, filename):
      Input(component_id='type_plot2', component_property='value'),
      Input(component_id='type_regs', component_property='value'),
      Input(component_id='type_marker1', component_property='value'),
-     Input(component_id='type_marker2', component_property='value')])
+     Input(component_id='type_marker2', component_property='value'),
+     Input(component_id='type_dimensions', component_property='value'),
+     Input(component_id='size_bubble1', component_property='value'),
+     Input(component_id='size_bubble2', component_property='value')])
 
-def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2):
+def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2, dimensions, size1, size2):
 
-    print('\n---------DEBUG--------------')
-    print(n_clicks, repr(n_clicks))
-    print(rows, repr(rows))
-    print(value, repr(value))
-    print(value2, repr(n_clicks))
-    print(reg_type, repr(reg_type))
+##    print('\n---------DEBUG--------------')
+##    print(n_clicks, repr(n_clicks))
+##    print(rows, repr(rows))
+##    print(value, repr(value))
+##    print(value2, repr(n_clicks))
+##    print(reg_type, repr(reg_type))
     
     if n_clicks is not None and len(rows[0]) is not 0:
 
@@ -287,19 +386,21 @@ def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2):
         y = dff['Y']
         z = dff['Z']
 
-        print('\n---------DEBUG 2--------------')
-        print(repr(x))
-        print(repr(y))
-        print(repr(z))
+##        print('\n---------DEBUG 2--------------')
+##        print(repr(x))
+##        print(repr(y))
+##        print(repr(z))
 
         
 
-        if len(z)==0 or all(z[i] == None for i in range(len(z))):
-            x_2, y_2 = regs.choose_reg(reg_type, x, y)
-            return plotter.generate_plot2d_2(x, y, value, 'Dados', 'Gráfico 2d', x_2, y_2, value2, 'Hipótese', mode1, mode2)
-
-        else:
-            return plotter.generate_plot3d(x, y, z, value+'3d', None, {'size': '10', 'opacity': '0.7'}, 'nome3d', 'Gráfico 3d') ################################### colocar filtro dos tipos de 3d e 2d
+        if dimensions == '2d':
+            x_2, y_2 = regs.choose_reg_2d(reg_type, x, y)
+            return plotter.generate_plot2d_2(x, y, value, 'Dados', 'Gráfico 2d', x_2, y_2, value2, 'Hipótese', mode1, mode2, size1, size2)
+        elif dimensions == '3d':
+            z = ['0' if z[i] == None else z[i] for i in range(len(z))]
+            x_2, y_2, z_2 = regs.choose_reg_3d(reg_type, x, y, z)
+            ####################################################################################################################### colocar o 3d_2
+            return plotter.generate_plot3d_2(x, y, z, value+'3d', None, {'size': size1, 'opacity': '0.7'}, 'nome3d', 'Gráfico 3d', x_2, y_2, z_2, value+'3d', None, {'size': size2, 'opacity': '0.7'}, 'nome3d2')
 
 
     elif len(rows[0]) is not 0:
@@ -314,15 +415,11 @@ def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2):
         
         print(len(z))
 
-        if len(z)==0 or all(z[i] == None for i in range(len(z))):
+        if dimensions == '2d':
             return plotter.generate_plot2d(x, y, value, 'Dados', 'Gráfico 2d')
-        else:
-            z = [0 if z[i] == None else z[i] for i in range(len(z))] #---------------------------------> testar
-            return plotter.generate_plot3d(x, y, z, value+'3d', None, {'size': '10', 'opacity': '0.7'}, 'nome3d', 'Gráfico 3d')
-
-    else:
-        return None
-                      
+        elif dimensions == '3d':
+            z = ['0' if z[i] == None else z[i] for i in range(len(z))]
+            return plotter.generate_plot3d(x, y, z, value+'3d', None, {'size': size1, 'opacity': '0.7'}, 'nome3d', 'Gráfico 3d')
 
 
 if __name__ == '__main__':

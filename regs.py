@@ -3,7 +3,7 @@ from sklearn import datasets, linear_model
 import pandas as pd
 
 
-def choose_reg(dropdown, x, y):
+def choose_reg_2d(dropdown, x, y):
     #########################################adicionar verificacao das lengths do x e y
     default = [0 for i in range(len(x))]
     if dropdown == 'lsm':
@@ -23,6 +23,15 @@ def choose_reg(dropdown, x, y):
         return x_2, y_2
     else:
         return default, default
+
+def choose_reg_3d(dropdown, x, y, z):
+    #########################################adicionar verificacao das lengths do x e y
+    default = [0 for i in range(len(x))]
+    if dropdown == 'linear3d':
+        x_2, y_2, z_2 =  linear_regression_3d(x, y, z)
+        return x_2, y_2, z_2
+    else:
+        return default, default, default
 
 
 def least_squares (list_x, list_y):
@@ -148,7 +157,7 @@ def exponential_regression(x, y):
 
     print('\n-------Exponential Regression--------')
 
-    func_a, func_b = np.polyfit( np.array(x), np.log(np.array(y)), 1)
+    func_a, func_b = np.polyfit( np.array(x), np.log(np.array(y)), 1, w = 2*np.sqrt(y))
     x_2 = [i for i in range(int(max(x)))]
     y_2 = [(np.exp(func_b) * np.exp(func_a*i)) for i in x_2]
 
@@ -157,7 +166,33 @@ def exponential_regression(x, y):
 
     return x_2, y_2
 
+def linear_regression_3d(df_x, df_y, df_z):
 
+    print('\n-------Linar Regression 3d--------')
+    
+    #o z eh vertical inicialmente
+
+    if len(df_x)>500:
+        factor = 2 + 1*(len(df_x)/500 -1)
+    else:
+        factor = 1
+
+        
+    length_x = int(len(df_x)/factor)
+
+    x_train = [[df_x[i], df_y[i]] for i in range(length_x)]
+    z_train = df_z[:length_x]
+
+    print(x_train)
+    
+    linreg = linear_model.LinearRegression()
+    linreg.fit(x_train, z_train)
+
+
+    data = [{'X': df_x[i], 'Y': df_y[i], 'Z': linreg.predict(x_train)[i]} for i in range(len(df_x))]
+    df = pd.DataFrame(data)
+
+    return df['X'], df['Y'], df['Z']
 
 
 
