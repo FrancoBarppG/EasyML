@@ -1,56 +1,86 @@
+
+#--------------------------BIBLIOTECAS----------------------------#
+
+#----------Bibliotecas do Dash--------------#
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 import dash_table_experiments as dt
 
-import pandas
-from flask import send_from_directory
 
+#-----------Outras bibliotecas-----------------#
+import pandas #pra manipulação de tabelas
+from flask import send_from_directory #pra importar arquivos para uso no site
+import regs # .py com as funções de simplificação
+import plot_functions as plotter #.py com as funções que retornam a figure atualizada do grafico
+
+
+#---------Bibliotecas Gerais----------------#
 import os
 import base64
 import datetime
 import io
 
-import regs # .py com as funções de simplificação
-import plot_functions as plotter
 
+#------BASE-------#
 app = dash.Dash()
 server = app.server
+#-----------------#
 
-N_TABLES = 100
+#--------------------------PARÂMETROS GERAIS----------------------------#
+
+max_width_maindiv = '70vw'
+min_width_maindiv = '1px'
+sidemenu_size = ['25vw', '100vh']
+css_sheet = 'style.css'
 
 app.scripts.config.serve_locally=True
 app.css.config.serve_locally = True
 #app.config['suppress_callback_exceptions'] = True
 
-#--------------------------PARÂMETROS----------------------------#
+#Página base:
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>EasyML</title>
+        {%favicon%}
+        {%css%}
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+        </footer>
+    </body>
+</html>
+'''
 
-max_width_maindiv = '70vw'
-min_width_maindiv = '1px'
-sidemenu_size = ['25vw', '100vh']
+#--------------------------TODO-----------------------------------------#
+   
+# Rever a geração de gráficos quando nenhum algoritmo de simplificação foi selecionado
+
+
+#======================================================================================================================================================
 
 
 
 
-
-#----------------------------------------------------------------#
-
-
-
-
+#incorpora o /static/ no projeto
 @app.server.route('/static/<path:path>')
 def static_file(path):
     static_folder = os.path.join(os.getcwd(), 'static')
     return send_from_directory(static_folder, path)
 
 
-app.css.append_css({"external_url": "/static/{}".format('style.css')})
-app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
+#inclui a sheet de css no projeto
+app.css.append_css({"external_url": "/static/{}".format(css_sheet)})
 
 
-
-
+#função pra dar parse no conteúdo do arquivo de upload
 def parse_upload_contents(contents, filename):
     content_type, content_string = contents[0].split(',')
     filename = filename[0]
@@ -71,17 +101,12 @@ def parse_upload_contents(contents, filename):
     return table_data
 
 
-
-
-app.layout = html.Div(children = [
-    html.Img(src = '/static/miotea.png', style = {'width': '192px', 'height': '108px', 'position': 'absolute', 'float': 'right', 'left': '92%'}),
+#layout da página:
+app.layout = html.Div(children = [    
 
     html.Link(rel = 'stylesheet', href ='/static/style.css'),
     
-    html.Div(id = 'header_img', style = {'width': '320px', 'height': '80px'}, children = []),
-    
-
-    
+    html.Div(style = {'width': '320px', 'height': '80px'}, children = [html.Img(src = '/static/logo2.png', style = {'width': '320px', 'height': '80px'})]), 
 
     html.Div(id='sidemenu',
          style = {'backgroundColor': 'white',
@@ -100,7 +125,7 @@ app.layout = html.Div(children = [
                  id = 'type_mainplot',
                  options = [
                      {'label': 'Scatter', 'value': 'scatter'},
-                     {'label': 'Bar', 'value': 'bar'},
+                     {'label': 'Bar', 'value': 'bar'}
                     ],
                  value = 'scatter',
                  clearable = False,
@@ -124,6 +149,7 @@ app.layout = html.Div(children = [
                  options = [
                      {'label': 'Lines', 'value': 'lines'},
                      {'label': 'Bubble', 'value': 'markers'},
+                     {'label': 'Fill', 'value': 'fill'}
                     ],
                  value = 'lines',
                  clearable = False,
@@ -148,6 +174,7 @@ app.layout = html.Div(children = [
                  options = [
                      {'label': 'Lines', 'value': 'lines'},
                      {'label': 'Bubble', 'value': 'markers'},
+                     {'label': 'Fill', 'value': 'fill'}
                     ],
                  value = 'lines',
                  clearable = False,
@@ -239,7 +266,7 @@ app.layout = html.Div(children = [
             className = 'container'
             ),
 
-            dcc.Graph(id='output_graph', animate = False, style = {'width': '100%', 'height': '100%', 'display': 'inline-block', 'borderLeft': '1px solid #d6d6d6', 'borderRight': '1px solid #d6d6d6', 'borderBottom': '1px solid #d6d6d6'}),
+            dcc.Graph(id='output_graph', animate = False, style = {'width': '100%', 'height': '500px', 'display': 'inline-block', 'borderLeft': '1px solid #d6d6d6', 'borderRight': '1px solid #d6d6d6', 'borderBottom': '1px solid #d6d6d6'}),
 
             
 
@@ -248,18 +275,19 @@ app.layout = html.Div(children = [
             dcc.Tab(label = '', children = [
                 html.Link(rel='stylesheet', href='/static/style.css'),
                 html.H2("Bem vindo ao EasyML"),
-                html.Pre("""Para usar o sistema, aperte em graph acima
+                html.Pre("""
+                        Para usar o sistema, aperte em graph acima
                         Se buscar ajuda, clique aqui
 
                          """),
+                html.Img(src = '/static/miotea.png', style = {'width': '50%', 'height': '50%', 'float': 'right', 'margin': '0', 'padding': '0'}),
                 ],
 
                 disabled = True),
             ],
              
-        
                 
-             style={
+             style={        #CSS das tabs
             },
                 content_style={
                 'borderLeft': '1px solid #d6d6d6',
@@ -273,7 +301,7 @@ app.layout = html.Div(children = [
             }
              )
 ],
-                      style = {'position': 'relative'}
+                      style = {'position': 'relative'} #CSS da div das tabs
 )
     
     
@@ -294,6 +322,7 @@ def update_output(contents, filename):
         return [{}]
 
 
+#Muda o dropdown de algoritmos de simplificação de acordo com as dimesões (2d ou 3d)
 @app.callback(
     Output(component_id='type_regs_div', component_property='children'),
     [Input(component_id='type_dimensions', component_property='value')])
@@ -331,6 +360,7 @@ def update_children(value):
          )
 
 
+#Se for usado marcador, coloca o slider de tamanho do marcador
 @app.callback(
     Output(component_id='size_bubble1_div', component_property='style'),
     [Input(component_id='type_marker1', component_property='value')])
@@ -338,7 +368,7 @@ def update_children(value):
 def update_size_bubble1(mode1):
     if mode1 == 'markers':
         return None
-    elif mode1 == 'lines':
+    elif mode1 == 'lines' or mode1 == 'fill':
         return {'display': 'none'}
 
 @app.callback(
@@ -348,11 +378,35 @@ def update_size_bubble1(mode1):
 def update_size_bubble2(mode2):
     if mode2 == 'markers':
         return None
-    elif mode2 == 'lines':
+    elif mode2 == 'lines' or mode2 == 'fill':
         return {'display': 'none'}
 
-#               
-# Atualiza o gráfico se a planilha for editada
+
+
+#Se for colocado em 2d, vai automaticamente pra 'lines', se for 3d, vai automaticamente pra 'bubbles'
+@app.callback(
+    Output(component_id='type_marker1', component_property='value'),
+    [Input(component_id='type_dimensions', component_property='value')])
+
+def to_bubble_1(dimensions):
+    if dimensions == '3d':
+        return 'bubbles'
+    else:
+        return 'lines'
+
+@app.callback(
+    Output(component_id='type_marker2', component_property='value'),
+    [Input(component_id='type_dimensions', component_property='value')])
+
+def to_bubble_2(dimensions):
+    if dimensions == '3d':
+        return 'bubbles'
+    else:
+        return 'lines'
+
+
+               
+# Atualiza o gráfico de acordo com a planilha e os outros parâmetros
 @app.callback(
     Output(component_id='output_graph', component_property='figure'),
     [Input(component_id='reg_button', component_property='n_clicks'),
@@ -391,18 +445,18 @@ def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2, dimensi
 ##        print(repr(y))
 ##        print(repr(z))
 
-        
-
+        #Se for 2d, usa o algoritmo de simplificação escolhido e gera o gráfico
         if dimensions == '2d':
             x_2, y_2 = regs.choose_reg_2d(reg_type, x, y)
             return plotter.generate_plot2d_2(x, y, value, 'Dados', 'Gráfico 2d', x_2, y_2, value2, 'Hipótese', mode1, mode2, size1, size2)
+        #Se for 3d, usa o algoritmo de simplificação escolhido e gera o gráfico
         elif dimensions == '3d':
             z = ['0' if z[i] == None else z[i] for i in range(len(z))]
             x_2, y_2, z_2 = regs.choose_reg_3d(reg_type, x, y, z)
-            ####################################################################################################################### colocar o 3d_2
+            ##################################################################TODO#################################################### colocar o 3d_2
             return plotter.generate_plot3d_2(x, y, z, value+'3d', None, {'size': size1, 'opacity': '0.7'}, 'nome3d', 'Gráfico 3d', x_2, y_2, z_2, value+'3d', None, {'size': size2, 'opacity': '0.7'}, 'nome3d2')
 
-
+    #Caso não tenha sido escolhido algoritmo de simplificação gera o gráfico 2d ou 3d
     elif len(rows[0]) is not 0:
         
         dff = pandas.DataFrame(rows)

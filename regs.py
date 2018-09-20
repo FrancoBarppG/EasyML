@@ -30,6 +30,9 @@ def choose_reg_3d(dropdown, x, y, z):
     if dropdown == 'linear3d':
         x_2, y_2, z_2 =  linear_regression_3d(x, y, z)
         return x_2, y_2, z_2
+    elif dropdown == 'logi3d':
+        x_2, y_2, z_2 =  logistic_regression_3d(x, y, z)
+        return x_2, y_2, z_2
     else:
         return default, default, default
 
@@ -51,7 +54,7 @@ def least_squares (list_x, list_y):
         raise ValueError('Length of X and Y coordinates are different')
         return None
 
-
+    # FIXME
     func_b = sum([x[i]*(y[i]-mean_y) for i in range(len(x))])/sum([x[i]*(x[i]-mean_x) for i in range(len(x))])
     func_a = mean_y - func_b*mean_x
 
@@ -176,7 +179,6 @@ def linear_regression_3d(df_x, df_y, df_z):
         factor = 2 + 1*(len(df_x)/500 -1)
     else:
         factor = 1
-
         
     length_x = int(len(df_x)/factor)
 
@@ -195,7 +197,28 @@ def linear_regression_3d(df_x, df_y, df_z):
     return df['X'], df['Y'], df['Z']
 
 
+def logistic_regression_3d(df_x, df_y, df_z):
 
+    print('\n-------Logistic Regression--------')
+
+    if len(df_x)>500:
+        factor = 2 + 1*(len(df_x)/500 -1)
+    else:
+        factor = 1
+
+    length_x = int(len(df_x)/factor)
+
+    x_train = [[df_x[i], df_y[i]] for i in range(length_x)]
+    z_train = df_z[:length_x]
+      
+    logreg = linear_model.LogisticRegression()
+    logreg.fit(x_train, z_train)
+
+
+    data = [{'X': df_x[i], 'Y': df_y[i], 'Z': logreg.predict(x_train)[i]} for i in range(len(df_x))]
+    df = pd.DataFrame(data)
+
+    return df['X'], df['Y'], df['Z']
 
 
 
