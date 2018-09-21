@@ -22,6 +22,9 @@ import base64
 import datetime
 import io
 
+#-----------------Database------------------#
+import dataset
+#import sqlite TODO
 
 #------BASE-------#
 app = dash.Dash()
@@ -34,6 +37,10 @@ max_width_maindiv = '70vw'
 min_width_maindiv = '1px'
 sidemenu_size = ['25vw', '100vh']
 css_sheet = 'style.css'
+
+#inicialização da db
+#db = dataset.connect('sqlite://database.db') TODO
+#database_table = db['datatables'] TODO
 
 app.scripts.config.serve_locally=True
 app.css.config.serve_locally = True
@@ -220,6 +227,10 @@ app.layout = html.Div(children = [
              ),
             
             html.Button('Refresh', id='reg_button', style = {'backgroundColor': '#1975fa', 'color': 'white', 'width': '100%', 'marginTop': '30px'}),
+
+            dcc.Input(id='password_text', placeholder='Insira uma senha para acessar sua tabela...', style = {'width': '100%', 'marginTop': '10px'}),
+
+            html.Button('Save table', id='db_button', style = {'backgroundColor': '#fa9d19', 'color': 'white', 'width': '100%'}),
     ]),
     
     dcc.Tabs(id='tabs', vertical=False, children = [
@@ -264,7 +275,7 @@ app.layout = html.Div(children = [
             ),
 
             className = 'container'
-            ),
+            ), 
 
             dcc.Graph(id='output_graph', animate = False, style = {'width': '100%', 'height': '500px', 'display': 'inline-block', 'borderLeft': '1px solid #d6d6d6', 'borderRight': '1px solid #d6d6d6', 'borderBottom': '1px solid #d6d6d6'}),
 
@@ -281,12 +292,15 @@ app.layout = html.Div(children = [
 
                          """),
                 html.Img(src = '/static/miotea.png', style = {'width': '50%', 'height': '50%', 'float': 'right', 'margin': '0', 'padding': '0'}),
+
+                dcc.Textarea(id='hidden_text', value='', style={'display': 'none'})
+
                 ],
 
                 disabled = True),
             ],
              
-                
+            
              style={        #CSS das tabs
             },
                 content_style={
@@ -304,7 +318,33 @@ app.layout = html.Div(children = [
                       style = {'position': 'relative'} #CSS da div das tabs
 )
     
-    
+ #Adiciona a planilha no banco de dados
+@app.callback(
+    Output(component_id='hidden_text', component_property='value'),
+    [Input(component_id='db_button', component_property='n_clicks'),
+     Input(component_id='password_text', component_property='value'),
+     Input(component_id='datatable', component_property='rows')]
+)
+def to_db(n_clicks, password, rows):
+    password = password.replace(' ', '')
+    #TODO: verificar se alguem ja usou essa senha
+    if password is not None and password != '' and len(password) >= 8 and len(password) <= 15:
+        if n_clicks is not None:
+            #table = rows.to_csv().saveas( str(int(time.time())).".csv")
+            #database_table.insert(dict(password=password, table=table))
+            return '1'
+        else:
+            return None
+    else:
+        return None #TODO colocar alert q a senha é inválida
+
+#Reseta o n_clicks se o texto for editado (n importa o texto q for colocado, ele so vai resetar o n_clicks do botao) FIXME
+#@app.callback(
+#    Output(component_id='db_button', component_property='n_clicks'),
+#    [Input(component_id='hidden_text', component_property='value')]
+#)
+#def reset_n_clicks(text):
+#    return None   
     
 # Coloca o arquivo de upload na planilha
 @app.callback(Output('datatable', 'rows'),
