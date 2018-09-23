@@ -1,0 +1,291 @@
+
+#--------------------------BIBLIOTECAS----------------------------#
+
+#----------Bibliotecas do Dash--------------#
+from dash import Dash
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
+import dash_table_experiments as dt
+
+
+#-----------Outras bibliotecas-----------------#
+import pandas #pra manipulação de tabelas
+from flask import send_from_directory #pra importar arquivos para uso no site
+from libs import regs # .py com as funções de simplificação
+from libs import plot_functions as plotter #.py com as funções que retornam a figure atualizada do grafico
+
+
+#---------Bibliotecas Gerais----------------#
+import os
+import base64
+import datetime
+import io
+
+#-----------------Database------------------#
+import dataset
+import sqlite3
+
+#------BASE-------#
+#app = dash.Dash()
+#server = app.server
+#-----------------#
+
+#--------------------------PARÂMETROS GERAIS----------------------------#
+
+max_width_maindiv = '70vw'
+min_width_maindiv = '1px'
+sidemenu_size = ['25vw', '100vh']
+css_sheet = 'style.css'
+
+#Página base:
+
+#--------------------------TODO-----------------------------------------#
+   
+# Rever a geração de gráficos quando nenhum algoritmo de simplificação foi selecionado
+
+
+#======================================================================================================================================================
+#from login_app import app_logged
+
+        
+#incorpora o /static/ no projeto
+
+
+#inclui a sheet de css no projeto
+#app.css.append_css({"external_url": os.path.abspath("/static/{}".format(css_sheet))})
+
+
+#função pra dar parse no conteúdo do arquivo de upload
+def parse_upload_contents(contents, filename):
+    content_type, content_string = contents[0].split(',')
+    filename = filename[0]
+    decoded = base64.b64decode(content_string)
+    try:
+
+        if '.csv' in filename:
+            table_data = pandas.read_csv(
+                io.StringIO(decoded.decode('utf-8')))
+
+        elif '.xls' in filename:
+            table_data = pandas.read_excel(io.BytesIO(decoded))
+            
+    except Exception as e:
+        print(e)
+        return None # TODO: colocar alert aqui
+
+    return table_data
+
+
+#layout da página:
+app_logged_layout = html.Div(children = [    
+
+    html.Link(rel = 'stylesheet', href ='/static/style.css'),
+    
+    html.Div(style = {'width': '320px', 'height': '80px'}, children = [html.Img(src = '/static/logo2.png', style = {'width': '320px', 'height': '80px'})]), 
+
+    html.Div(id='sidemenu',
+         style = {'backgroundColor': 'white',
+                  'float': 'left',
+                  'width': sidemenu_size[0],
+                  'height': sidemenu_size[1],
+                  'borderRadius': '5px',
+                  'borderTop': '2px solid #1975fa',
+                  'borderRight': '1px solid #d6d6d6',
+                  'borderLeft': '1px solid #d6d6d6',
+                  'margin': '0 auto',
+                  'padding': '10px'},
+         children = [
+            html.H4("Tipo do gráfico base"),
+            dcc.Dropdown(
+                 id = 'type_mainplot',
+                 options = [
+                     {'label': 'Scatter', 'value': 'scatter'},
+                     {'label': 'Bar', 'value': 'bar'}
+                    ],
+                 value = 'scatter',
+                 clearable = False,
+                 searchable = False
+             ),
+            html.H4("Tipo do gráfico 2"),
+            dcc.Dropdown(
+                 id = 'type_plot2',
+                 options = [
+                     {'label': 'Scatter', 'value': 'scatter'},
+                     {'label': 'Bar', 'value': 'bar'}
+                    ],
+                 value = 'scatter',
+                 clearable = False,
+                 searchable = False
+             ),
+
+            html.H4("Marcador do gráfico 1"),
+            dcc.Dropdown(
+                 id = 'type_marker1',
+                 options = [
+                     {'label': 'Lines', 'value': 'lines'},
+                     {'label': 'Bubble', 'value': 'markers'},
+                     {'label': 'Fill', 'value': 'fill'}
+                    ],
+                 value = 'lines',
+                 clearable = False,
+                 searchable = False
+             ),
+            
+            html.Div( id = 'size_bubble1_div', children = [
+                html.H4("Tamanho dos círculos do gráfico 1"),
+                dcc.Slider(
+                     id = 'size_bubble1',
+                     min = 1,
+                     max = 15,
+                     step = 0.5,
+                     value = 5
+                 )],
+                style = {'display': 'none'}
+            ),
+
+            html.H4("Marcador do gráfico 2"),
+            dcc.Dropdown(
+                 id = 'type_marker2',
+                 options = [
+                     {'label': 'Lines', 'value': 'lines'},
+                     {'label': 'Bubble', 'value': 'markers'},
+                     {'label': 'Fill', 'value': 'fill'}
+                    ],
+                 value = 'lines',
+                 clearable = False,
+                 searchable = False
+             ),    
+            html.Div( id = 'size_bubble2_div', children = [
+                html.H4("Tamanho dos círculos do gráfico 2"),
+                dcc.Slider(
+                     id = 'size_bubble2',
+                     min = 1,
+                     max = 15,
+                     step = 0.5,
+                     value = 5
+                 )],
+                style = {'display': 'none'}),
+            html.H4("Método de linearização"),
+            html.Div( id = 'type_regs_div', children = [
+                dcc.Dropdown(
+                     id = 'type_regs',
+                     options = [
+                         {'label': 'MMQ', 'value': 'lsm'},
+                         {'label': 'Regressão Linear', 'value': 'linear'},
+                         {'label': 'Regressão Logística', 'value': 'logi'},
+                         {'label': 'Regressão Logarítmica', 'value': 'log'},
+                         {'label': 'Regressão Exponencial', 'value': 'exp'},
+                        ],
+                     value = 'lsm',
+                     clearable = True,
+                     searchable = False,
+                     placeholder = 'Escolha...'
+                 )
+                ]),
+            html.H4("2D/3D"),
+            dcc.Dropdown(
+                 id = 'type_dimensions',
+                 options = [
+                     {'label': '2D', 'value': '2d'},
+                     {'label': '3D', 'value': '3d'},
+                    ],
+                 value = '2d',
+                 clearable = False,
+                 searchable = False
+             ),
+            
+            html.Button('Refresh', id='reg_button', style = {'backgroundColor': '#1975fa', 'color': 'white', 'width': '100%', 'marginTop': '30px'}),
+
+            dcc.Input(id='password_text', placeholder='Insira uma senha para acessar sua tabela...', style = {'width': '100%', 'marginTop': '10px'}),
+
+            html.Button('Save table', id='db_button', style = {'backgroundColor': '#fa9d19', 'color': 'white', 'width': '100%'}),
+    ]),
+    
+    dcc.Tabs(id='tabs', vertical=False, children = [
+        
+        dcc.Tab(label = 'Graph', id='graph', children = [
+
+            html.Link(rel='stylesheet', href='/static/style.css'),
+
+            html.Div([
+                dcc.Upload(
+                    id='upload_data',
+                    children=html.Div(
+                        id='upload_div',
+                        children=[
+                        'Arraste e solte ou ',
+                        html.A('selecione o arquivo')
+                    ]),
+                    style={
+                        'lineHeight': '60px',
+                        'borderWidth': '1px',
+                        'borderStyle': 'dashed',
+                        'borderRadius': '5px',
+                        'textAlign': 'center',
+                        'margin': '10px'
+                    },
+                    # Allow multiple files to be uploaded
+                    multiple=True
+                )
+            ]),
+            
+            html.Div(children = dt.DataTable(
+                rows = [{}],
+                columns = ['X', 'Y', 'Z'],
+                row_selectable = False,
+                filterable = False,
+                sortable = False,
+                editable = True,
+                id = 'datatable',
+                max_rows_in_viewport = 5,
+                
+
+            ),
+
+            className = 'container'
+            ), 
+
+            dcc.Graph(id='output_graph', animate = False, style = {'width': '100%', 'height': '500px', 'display': 'inline-block', 'borderLeft': '1px solid #d6d6d6', 'borderRight': '1px solid #d6d6d6', 'borderBottom': '1px solid #d6d6d6'}),
+
+            
+
+            ]),
+
+            dcc.Tab(label = '', children = [
+                html.Link(rel='stylesheet', href='/static/style.css'),
+                html.H2("Bem vindo ao EasyML"),
+                html.Pre("""
+                        Para usar o sistema, aperte em graph acima
+                        Se buscar ajuda, clique aqui
+
+                         """),
+                html.Img(src = '/static/miotea.png', style = {'width': '50%', 'height': '50%', 'float': 'right', 'margin': '0', 'padding': '0'}),
+
+                dcc.Textarea(id='hidden_text', value='', style={'display': 'none'})
+
+                ],
+
+                disabled = True),
+            ],
+             
+            
+             style={        #CSS das tabs
+            },
+                content_style={
+                'borderLeft': '1px solid #d6d6d6',
+                'borderRight': '1px solid #d6d6d6',
+                'borderBottom': '1px solid #d6d6d6',
+                'padding': '44px'
+            },
+                parent_style={
+                'maxWidth': max_width_maindiv,
+                'margin': '0 auto',
+            }
+             )
+],
+                      style = {'position': 'relative'} #CSS da div das tabs
+)
+    
+
+
