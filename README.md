@@ -1,2 +1,3 @@
 # EasyML
-A website for trying out machine learning algorithms with visual support.
+
+Web interface with interactive graphing on machine learning algorithms.
