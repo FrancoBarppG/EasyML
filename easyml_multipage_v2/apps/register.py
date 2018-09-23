@@ -8,7 +8,7 @@ from apps.app_logged import app_logged
 import os
 import shutil
 
-from flask import Flask, render_template, flash, request, url_for, redirect
+from flask import Flask
 from dash_flask_login import FlaskLoginAuth
 import dash_flask_login
 import sqlite3
@@ -17,10 +17,10 @@ from flask_login import UserMixin
 
 #Issue: https://github.com/gaw89/dash-flask-login/issues/6
 #Troca o HTML padrão de login pelo especificado
-new = os.path.dirname(os.path.abspath(__file__)) + '/assets/login.html'
-print(new)
-old = os.path.dirname(dash_flask_login.__file__) + '/templates/default_login.html'
-shutil.copyfile(new, old)
+##new = os.path.dirname(os.path.abspath(__file__)) + '/assets/login.html'
+##print(new)
+##old = os.path.dirname(dash_flask_login.__file__) + '/templates/default_login.html'
+##shutil.copyfile(new, old)
 
 users = sqlite3.connect(os.path.abspath('database/users.db'))
 
@@ -48,17 +48,8 @@ users = sqlite3.connect(os.path.abspath('database/users.db'))
 server = app_logged.server
 auth = FlaskLoginAuth(app_logged, use_default_views=True, users=users)
 
-@server.route('/reg/')
-def reg():
-    return redirect(url_for('register'))
-
-
-@server.route('/register/')
-def register():
-    return render_template('register.html')
-
-
 users.close()
+
 # Run the server
 if __name__ == '__main__':
     server.run(debug=True, port=8050)
