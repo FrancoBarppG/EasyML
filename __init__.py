@@ -9,6 +9,7 @@ from apps.app_notlogged import *
 from libs import regs
 from libs import plot_functions as plotter
 
+import math
 import os
 import time
 import base64
@@ -177,9 +178,25 @@ def deu_boa():
 # Coloca o arquivo de upload na planilha
 @app_logged.callback(Output('datatable', 'rows'),
               [Input('upload_data', 'contents'),
-               Input('upload_data', 'filename')])
+               Input('upload_data', 'filename'),
+               Input('getcsv_text', 'value'),
+               Input('getcsv_button', 'n_clicks')])
 
-def update_output(contents, filename):
+def update_output(contents, filename, password, n_clicks):
+    
+    if n_clicks != None and password.replace(' ','') != '':
+        users = sqlite3.connect(os.path.abspath('database/users.db'))
+        cursor = users.cursor()
+        insert = (password,)
+        query = cursor.execute("""
+        SELECT path FROM DATATABLES
+        WHERE password=?""",insert)
+        selection = query.fetchall()
+        users.close()
+
+        if selection != []:
+            return pandas.read_csv(selection[0][0], encoding='utf-8').fillna(0.0001).to_dict('records')
+
     if contents is not None:
         df = parse_upload_contents(contents, filename)
         if df is not None:
@@ -226,6 +243,14 @@ def update_children(value):
              searchable = False,
              placeholder = 'Escolha...'
          )
+
+@app_logged.callback(
+    Output(component_id='save_button', component_property='n_clicks'),
+    [Input(component_id='password_text', component_property='value')])
+
+def reset_button(text):
+    return None
+
 
 
 #Se for usado marcador, coloca o slider de tamanho do marcador
@@ -281,12 +306,13 @@ def to_bubble_2(dimensions):
 def save_table(rows, n_clicks, password):
     if n_clicks != None and password.replace(' ','') != '':
 
-        for root, _, filenames in os.walk('/database/csv_files/'):
+        for filename in os.listdir(os.path.dirname(os.path.abspath(__file__))+'/database/csv_files'):
             if filename == password+'.csv':
                 return html.H5('Essa senha já foi usada. Escolha outra senha')
 
         #Gera senha
         generated_password = sha256_crypt.encrypt(str(time.time())).replace('/', '')[17:22]
+        
         csv_name = 'database/csv_files/{}.csv'.format(password)
         #Gera csv
         df = pandas.DataFrame(rows)
@@ -296,10 +322,10 @@ def save_table(rows, n_clicks, password):
         cursor = users.cursor()
 
         insert = (generated_password,)
-        cursor.execute("""
+        query = cursor.execute("""
         SELECT * FROM DATATABLES
         WHERE password=?""",insert)
-        selection = cursor.fetchall() 
+        selection = query.fetchall() 
 
 
         if selection == []:
@@ -313,7 +339,7 @@ def save_table(rows, n_clicks, password):
             
         else:
             users.close()
-            return html.H5('Error, please try again')
+            return html.H5('Erro, por favor pressione o botão de salvar novamente')
 
 
         
@@ -358,6 +384,18 @@ def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2, dimensi
         x = dff['X']
         y = dff['Y']
         z = dff['Z']
+
+#        def check_nan(list):
+#            for i in list:
+#                if math.isreal(i) ==:
+#                    if math.isnan(i):
+#                        i=0.0001
+#            return list
+#        
+#        check_nan(x)
+#        check_nan(y)
+#        check_nan(z)
+
 
 ##        print('\n---------DEBUG 2--------------')
 ##        print(repr(x))

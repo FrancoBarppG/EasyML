@@ -5,7 +5,7 @@ import pandas as pd
 
 def choose_reg_2d(dropdown, x, y):
     #########################################adicionar verificacao das lengths do x e y
-    default = [0 for i in range(len(x))]
+    default = [0.0001 for i in range(len(x))]
     if dropdown == 'lsm':
         x_2, y_2  = least_squares(x, y)
         return x_2, y_2
@@ -27,6 +27,9 @@ def choose_reg_2d(dropdown, x, y):
 def choose_reg_3d(dropdown, x, y, z):
     #########################################adicionar verificacao das lengths do x e y
     default = [0 for i in range(len(x))]
+    x = [float(i) for i in x]
+    y = [float(i) for i in y]
+    z = [float(i) for i in z]
     if dropdown == 'linear3d':
         x_2, y_2, z_2 =  linear_regression_3d(x, y, z)
         return x_2, y_2, z_2
@@ -41,8 +44,8 @@ def least_squares (list_x, list_y):
 
     print('\n-------Least Squares--------')
 
-    x = [int(n) for n in list_x]
-    y = [int(n) for n in list_y]
+    x = list_x
+    y = list_y
 
     mean_x = sum(x)/len(x)
     mean_y = sum(y)/len(y)
@@ -59,7 +62,7 @@ def least_squares (list_x, list_y):
     func_a = mean_y - func_b*mean_x
 
     x_2 = [i for i in range(int(max(x)))]
-    y_2 = [(func_b*x_2[i] + func_a) for i in range(max(x))] ############# o a e b tao trocado de proposito
+    y_2 = [(func_b*x_2[i] + func_a) for i in range(int(max(x)))] ############# o a e b tao trocado de proposito
     
 
     return x_2, y_2
@@ -147,7 +150,7 @@ def logarithmic_regression(x, y):
     ################## TODO: ver se vou colocar opcao de weight no polyfit
 
     func_a, func_b = np.polyfit( np.log(np.array(x)), np.array(y), 1)
-    x_2 = [i for i in range(int(max(x)))]
+    x_2 = [i for i in range(int(max(x))+1)]
     y_2 = [(func_b + func_a*np.log(i)) if i>=1 else None for i in x_2]
     
 
@@ -161,7 +164,7 @@ def exponential_regression(x, y):
     print('\n-------Exponential Regression--------')
 
     func_a, func_b = np.polyfit( np.array(x), np.log(np.array(y)), 1, w = 2*np.sqrt(y))
-    x_2 = [i for i in range(int(max(x)))]
+    x_2 = [i for i in range(int(max(x))+1)]
     y_2 = [(np.exp(func_b) * np.exp(func_a*i)) for i in x_2]
 
     print('X: {}'.format(x_2))

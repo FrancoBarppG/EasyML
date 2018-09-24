@@ -162,10 +162,13 @@ app_logged_layout = html.Div(children = [
              ),
             
             html.Button('Refresh', id='reg_button', style = {'backgroundColor': '#1975fa', 'color': 'white', 'width': '100%', 'marginTop': '30px'}),
-            dcc.Input(id='password_text', placeholder='Insira uma senha para acessar sua tabela...', style = {'width': '100%', 'marginTop': '10px'}),
+            dcc.Input(id='password_text', placeholder='Insira uma senha para salvar sua tabela...', style = {'width': '100%', 'marginTop': '10px'}),
             html.Div(id='password_div'),
 
             html.Button('Save table', id='save_button', style = {'backgroundColor': '#fa9d19', 'color': 'white', 'width': '100%'}),
+
+            dcc.Input(id='getcsv_text', placeholder='Insira a senha recebida para acessar sua tabela...', style = {'width': '100%', 'marginTop': '10px'}),
+            html.Button('Get table', id='getcsv_button', style = {'backgroundColor': '#fa9d19', 'color': 'white', 'width': '100%'})
     ]),
     
     dcc.Tabs(id='tabs', vertical=False, children = [
