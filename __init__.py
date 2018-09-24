@@ -15,11 +15,12 @@ from flask import Flask, render_template, flash, request, url_for, redirect
 from dash_flask_login import FlaskLoginAuth
 import dash_flask_login
 import sqlite3
-import hashlib
+from passlib.hash import sha256_crypt
 from flask_login import UserMixin, login_required
 
 
-#Conecta no banco de dados
+
+users = sqlite3.connect(os.path.abspath('database/users.db'))
 
 #cursor = users.cursor()
 #cursor.execute("""
@@ -29,7 +30,7 @@ from flask_login import UserMixin, login_required
 #        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
 #);
 #""")
-#
+
 #cursor.execute("""
 #INSERT INTO USERS (username, password)
 #VALUES ('admin', 'admin')
@@ -39,14 +40,19 @@ from flask_login import UserMixin, login_required
 #INSERT INTO USERS (username, password)
 #VALUES ('franco', 'franco')
 #""")
-
-#users.commit()
+users.commit()
+users.close()
 
 server = Flask(__name__)
 
 @server.route('/')
 def index():
     return render_template('index.html')
+
+@server.route('/<path:subpath>')
+def index_2(subpath):
+    return render_template('index.html')
+
 
 app_logged = Dash(name='loggedapp', server=server)
 app_logged.layout = app_logged_layout
@@ -70,19 +76,27 @@ def logged():
     if request.method == 'POST':
         username = request.form['username'].replace(' ','')
         password = request.form['password'].replace(' ','')
-        insert = (username, password)
+        
+        users = sqlite3.connect(os.path.abspath('database/users.db'))
+        cursor = users.cursor()
+
+        insert = (username,)
         
         try:
             query = cursor.execute("""
-            SELECT * FROM USERS
-            WHERE username=? AND password=?;""", insert)
+            SELECT password FROM USERS
+            WHERE username=?;""", insert)
             selection = query.fetchall()
+            print(selection)
 
             users.close()
             if selection == []:
                 return render_template('loginfailed.html')
             else:
-                return app_logged.index()
+                if sha256_crypt.verify(password, selection[0][0]):
+                    return app_logged.index()
+                else:
+                    return render_template('loginfailed.html')
         except Exception as e:
             print(e)
             users.close()
@@ -114,21 +128,24 @@ def deu_boa():
 
         if len(username.replace(' ', ''))<6 or len(password.replace(' ', ''))<6:
             return render_template('error.html')
+        
+        password = sha256_crypt.encrypt(password)
 
         try:
-            
+            insert = (username,) 
             query = cursor.execute("""
             SELECT * FROM USERS
-            WHERE username=?""", username)
+            WHERE username=?""", insert)
             selection = query.fetchall()        
-    
+            print(selection)
             users.close()
             if selection != []:
                 return render_template('registerunsuccessful.html')
             else:
                 users = sqlite3.connect(os.path.abspath('database/users.db'))
                 cursor = users.cursor()
-
+                insert = (username, password)
+                print('aaaaaaaaaaa')
                 cursor.execute("""
                 INSERT INTO USERS(username, password)
                 VALUES(?,?)""", insert)
