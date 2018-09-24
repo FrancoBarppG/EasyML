@@ -1,3 +1,15 @@
+from dash.dependencies import Input, Output, State
+import dash_html_components as html
+import dash_core_components as dcc
+import dash_table_experiments as dt
+from dash import Dash
+
+import pandas
+
+import io
+import base64
+
+
 max_width_maindiv = '70vw'
 min_width_maindiv = '1px'
 sidemenu_size = ['25vw', '100vh']
@@ -150,10 +162,10 @@ app_logged_layout = html.Div(children = [
              ),
             
             html.Button('Refresh', id='reg_button', style = {'backgroundColor': '#1975fa', 'color': 'white', 'width': '100%', 'marginTop': '30px'}),
-
             dcc.Input(id='password_text', placeholder='Insira uma senha para acessar sua tabela...', style = {'width': '100%', 'marginTop': '10px'}),
+            html.Div(id='password_div'),
 
-            html.Button('Save table', id='db_button', style = {'backgroundColor': '#fa9d19', 'color': 'white', 'width': '100%'}),
+            html.Button('Save table', id='save_button', style = {'backgroundColor': '#fa9d19', 'color': 'white', 'width': '100%'}),
     ]),
     
     dcc.Tabs(id='tabs', vertical=False, children = [

@@ -8,7 +8,8 @@ Python libraries:
     - dash
   - flask
   - pandas
-  - Builtin Libraries:
+  - passlib
+  - Python built-in libraries:
     - os
     - shutil
     - sqlite3

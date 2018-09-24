@@ -10,7 +10,8 @@ from libs import regs
 from libs import plot_functions as plotter
 
 import os
-import shutil
+import time
+import base64
 
 from flask import Flask, render_template, flash, request, url_for, redirect
 import sqlite3
@@ -20,7 +21,7 @@ from passlib.hash import sha256_crypt
 
 users = sqlite3.connect(os.path.abspath('database/users.db'))
 
-#cursor = users.cursor()
+cursor = users.cursor()
 #cursor.execute("""
 #CREATE TABLE USERS(
 #        username TEXT NOT NULL,
@@ -28,6 +29,14 @@ users = sqlite3.connect(os.path.abspath('database/users.db'))
 #        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
 #);
 #""")
+#cursor.execute("""
+#CREATE TABLE DATATABLES(
+#        path TEXT NOT NULL,
+#        password TEXT NOT NULL,
+#        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
+#);
+#""")
+
 
 #cursor.execute("""
 #INSERT INTO USERS (username, password)
@@ -111,7 +120,6 @@ def loggedapp():
 @server.route('/login/')
 def login():
     return render_template('login.html')
-
 
 @server.route('/deu_boa/', methods=['GET', 'POST'])
 def deu_boa():
@@ -264,6 +272,57 @@ def to_bubble_2(dimensions):
     else:
         return 'lines'
 
+@app_logged.callback(
+    Output(component_id='password_div', component_property='children'),
+    [Input(component_id='datatable', component_property='rows'),
+    Input(component_id='save_button', component_property='n_clicks'),
+    Input(component_id='password_text', component_property='value')])
+
+def save_table(rows, n_clicks, password):
+    if n_clicks != None and password.replace(' ','') != '':
+
+        for root, _, filenames in os.walk('/database/csv_files/'):
+            if filename == password+'.csv':
+                return html.H5('Essa senha já foi usada. Escolha outra senha')
+
+        #Gera senha
+        generated_password = sha256_crypt.encrypt(str(time.time())).replace('/', '')[17:22]
+        csv_name = 'database/csv_files/{}.csv'.format(password)
+        #Gera csv
+        df = pandas.DataFrame(rows)
+        df.to_csv(csv_name, encoding='utf-8', index=False)
+
+        users = sqlite3.connect(os.path.abspath('database/users.db'))
+        cursor = users.cursor()
+
+        insert = (generated_password,)
+        cursor.execute("""
+        SELECT * FROM DATATABLES
+        WHERE password=?""",insert)
+        selection = cursor.fetchall() 
+
+
+        if selection == []:
+            insert = (csv_name,generated_password)
+            cursor.execute("""
+            INSERT INTO DATATABLES(path,password)
+            VALUES(?,?)""",insert)
+            users.commit()
+            users.close()
+            return html.H5('Datatable salva! Use essa senha para usar sua tabela novamente: {}'.format(generated_password))
+            
+        else:
+            users.close()
+            return html.H5('Error, please try again')
+
+
+        
+
+        
+        
+        
+    
+    
 
                
 # Atualiza o gráfico de acordo com a planilha e os outros parâmetros
