@@ -1,44 +1,7 @@
-
-#--------------------------BIBLIOTECAS----------------------------#
-
-#----------Bibliotecas do Dash--------------#
-from dash import Dash
-import dash_core_components as dcc
-import dash_html_components as html
-from dash.dependencies import Input, Output
-import dash_table_experiments as dt
-
-
-#-----------Outras bibliotecas-----------------#
-import pandas #pra manipulação de tabelas
-from flask import send_from_directory #pra importar arquivos para uso no site
-from libs import regs # .py com as funções de simplificação
-from libs import plot_functions as plotter #.py com as funções que retornam a figure atualizada do grafico
-
-
-#---------Bibliotecas Gerais----------------#
-import os
-import base64
-import datetime
-import io
-
-#-----------------Database------------------#
-import dataset
-import sqlite3
-
-#------BASE-------#
-#app = dash.Dash()
-#server = app.server
-#-----------------#
-
-#--------------------------PARÂMETROS GERAIS----------------------------#
-
 max_width_maindiv = '70vw'
 min_width_maindiv = '1px'
 sidemenu_size = ['25vw', '100vh']
 css_sheet = 'style.css'
-
-#Página base:
 
 #--------------------------TODO-----------------------------------------#
    
@@ -46,14 +9,6 @@ css_sheet = 'style.css'
 
 
 #======================================================================================================================================================
-#from login_app import app_logged
-
-        
-#incorpora o /static/ no projeto
-
-
-#inclui a sheet de css no projeto
-#app.css.append_css({"external_url": os.path.abspath("/static/{}".format(css_sheet))})
 
 #layout da página:
 app_notlogged_layout = html.Div(children = [    

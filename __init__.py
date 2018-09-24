@@ -1,6 +1,7 @@
 from dash.dependencies import Input, Output, State
 import dash_html_components as html
 import dash_core_components as dcc
+import dash_table_experiments as dt
 from dash import Dash
 
 from apps.app_logged import *
@@ -12,11 +13,8 @@ import os
 import shutil
 
 from flask import Flask, render_template, flash, request, url_for, redirect
-from dash_flask_login import FlaskLoginAuth
-import dash_flask_login
 import sqlite3
 from passlib.hash import sha256_crypt
-from flask_login import UserMixin, login_required
 
 
 
