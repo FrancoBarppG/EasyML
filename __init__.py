@@ -152,7 +152,6 @@ def deu_boa():
                 users = sqlite3.connect(os.path.abspath('database/users.db'))
                 cursor = users.cursor()
                 insert = (username, password)
-                print('aaaaaaaaaaa')
                 cursor.execute("""
                 INSERT INTO USERS(username, password)
                 VALUES(?,?)""", insert)
@@ -195,7 +194,7 @@ def update_output(contents, filename, password, n_clicks):
         users.close()
 
         if selection != []:
-            return pandas.read_csv(selection[0][0], encoding='utf-8').fillna(0.0001).to_dict('records')
+            return pandas.read_csv(selection[0][0], encoding='utf-8').fillna(None).to_dict('records')
 
     if contents is not None:
         df = parse_upload_contents(contents, filename)
@@ -401,36 +400,38 @@ def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2, dimensi
 ##        print(repr(x))
 ##        print(repr(y))
 ##        print(repr(z))
-
+        try:
         #Se for 2d, usa o algoritmo de simplificação escolhido e gera o gráfico
-        if dimensions == '2d':
-            x_2, y_2 = regs.choose_reg_2d(reg_type, x, y)
-            return plotter.generate_plot2d_2(x, y, value, 'Dados', 'Gráfico 2d', x_2, y_2, value2, 'Hipótese', mode1, mode2, size1, size2)
-        #Se for 3d, usa o algoritmo de simplificação escolhido e gera o gráfico
-        elif dimensions == '3d':
-            z = ['0' if z[i] == None else z[i] for i in range(len(z))]
-            x_2, y_2, z_2 = regs.choose_reg_3d(reg_type, x, y, z)
-            ##################################################################TODO#################################################### colocar o 3d_2
-            return plotter.generate_plot3d_2(x, y, z, value+'3d', None, {'size': size1, 'opacity': '0.7'}, 'nome3d', 'Gráfico 3d', x_2, y_2, z_2, value+'3d', None, {'size': size2, 'opacity': '0.7'}, 'nome3d2')
+            if dimensions == '2d':
+                x_2, y_2 = regs.choose_reg_2d(reg_type, x, y)
+                return plotter.generate_plot2d_2(x, y, value, 'Dados', 'Gráfico 2d', x_2, y_2, value2, 'Hipótese', mode1, mode2, size1, size2)
+            #Se for 3d, usa o algoritmo de simplificação escolhido e gera o gráfico
+            elif dimensions == '3d':
+                z = ['0' if z[i] == None else z[i] for i in range(len(z))]
+                x_2, y_2, z_2 = regs.choose_reg_3d(reg_type, x, y, z)
+                ##################################################################TODO#################################################### colocar o 3d_2
+                return plotter.generate_plot3d_2(x, y, z, value+'3d', None, {'size': size1, 'opacity': '0.7'}, 'nome3d', 'Gráfico 3d', x_2, y_2, z_2, value+'3d', None, {'size': size2, 'opacity': '0.7'}, 'nome3d2')
+        except:
+            return None #TODO gerar gráfico 2d
 
-    #Caso não tenha sido escolhido algoritmo de simplificação gera o gráfico 2d ou 3d
-    elif len(rows[0]) is not 0:
-        
-        dff = pandas.DataFrame(rows)
-        
-        x = dff['X']
-        y = dff['Y']
-        z = dff['Z']
-
-        #REVER
-        
-        print(len(z))
-
-        if dimensions == '2d':
-            return plotter.generate_plot2d(x, y, value, 'Dados', 'Gráfico 2d')
-        elif dimensions == '3d':
-            z = ['0' if z[i] == None else z[i] for i in range(len(z))]
-            return plotter.generate_plot3d(x, y, z, value+'3d', None, {'size': size1, 'opacity': '0.7'}, 'nome3d', 'Gráfico 3d')
+#    #Caso não tenha sido escolhido algoritmo de simplificação gera o gráfico 2d ou 3d
+#    elif len(rows[0]) is not 0:
+#        
+#        dff = pandas.DataFrame(rows)
+#        
+#        x = dff['X']
+#        y = dff['Y']
+#        z = dff['Z']
+#
+#        #REVER
+#        
+#        print(len(z))
+#
+#        if dimensions == '2d':
+#            return plotter.generate_plot2d(x, y, value, 'Dados', 'Gráfico 2d')
+#        elif dimensions == '3d':
+#            z = ['0' if z[i] == None else z[i] for i in range(len(z))]
+#            return plotter.generate_plot3d(x, y, z, value+'3d', None, {'size': size1, 'opacity': '0.7'}, 'nome3d', 'Gráfico 3d')
 
 
 # Run the server

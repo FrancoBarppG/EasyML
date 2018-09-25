@@ -9,6 +9,8 @@ Python libraries:
   - flask
   - pandas
   - passlib
+  - NumPy
+  - sklearn
   - Python built-in libraries:
     - os
     - shutil
@@ -17,6 +19,5 @@ Python libraries:
     - datetime
   
 **Additional credits**
-  - https://github.com/dhg/Skeleton (base css)
+  - https://github.com/dhg/Skeleton (base css, it's great btw)
   - chriddyp (cofounder of Plot.ly and author of Dash)
-  - React

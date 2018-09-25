@@ -6,6 +6,8 @@ import pandas as pd
 def choose_reg_2d(dropdown, x, y):
     #########################################adicionar verificacao das lengths do x e y
     default = [0.0001 for i in range(len(x))]
+    x = [float(i) if i != None else None for i in x]
+    y = [float(i) if i != None else None for i in y]
     if dropdown == 'lsm':
         x_2, y_2  = least_squares(x, y)
         return x_2, y_2
@@ -27,9 +29,9 @@ def choose_reg_2d(dropdown, x, y):
 def choose_reg_3d(dropdown, x, y, z):
     #########################################adicionar verificacao das lengths do x e y
     default = [0 for i in range(len(x))]
-    x = [float(i) for i in x]
-    y = [float(i) for i in y]
-    z = [float(i) for i in z]
+    x = [float(i) if i != None else None for i in x]
+    y = [float(i) if i != None else None for i in y] 
+    z = [float(i) if i != None else None for i in z]
     if dropdown == 'linear3d':
         x_2, y_2, z_2 =  linear_regression_3d(x, y, z)
         return x_2, y_2, z_2
