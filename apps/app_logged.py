@@ -48,7 +48,14 @@ app_logged_layout = html.Div(children = [
 
     html.Link(rel = 'stylesheet', href ='/static/style.css'),
     
-    html.Div(style = {'width': '320px', 'height': '80px'}, children = [html.Img(src = '/static/logo2.png', style = {'width': '320px', 'height': '80px'})]), 
+    html.Div(style = {'width': '100vw',
+                     'height': '80px'}, 
+                    children = [
+                     html.Img(src = '/static/logo2.png', style = {'width': '320px', 'height': '80px'}), 
+                     html.A(href='/logged/', children = [html.Button('Sair')], style = {'position': 'absolute', 'float': 'right', 'right': '100px', 'top': '20px'})
+    ]),
+
+    
 
     html.Div(id='sidemenu',
          style = {'backgroundColor': 'white',
