@@ -14,7 +14,7 @@ import os
 import time
 import base64
 
-from flask import Flask, render_template, flash, request, url_for, redirect
+from flask import Flask, render_template, flash, request, url_for, redirect, session, g
 import sqlite3
 from passlib.hash import sha256_crypt
 
@@ -52,6 +52,7 @@ users.commit()
 users.close()
 
 server = Flask(__name__)
+server.secret_key = os.urandom(24)
 
 @server.route('/')
 def index():
@@ -73,8 +74,6 @@ app_notlogged.layout = app_notlogged_layout
 #TODO colocar callbacks pro app_notlogged tb 
 
 
-
-
 @server.route('/register/')
 def register():
     return render_template('register.html')
@@ -82,6 +81,9 @@ def register():
 @server.route('/logged/', methods=['GET', 'POST'])
 def logged():
     if request.method == 'POST':
+
+        session.pop('user', None)
+
         username = request.form['username'].replace(' ','')
         password = request.form['password'].replace(' ','')
         
@@ -102,6 +104,8 @@ def logged():
                 return render_template('loginfailed.html')
             else:
                 if sha256_crypt.verify(password, selection[0][0]):
+                    session['user'] = username
+
                     return app_logged.index()
                 else:
                     return render_template('loginfailed.html')
@@ -342,6 +346,12 @@ def save_table(rows, n_clicks, password):
 
 
         
+@app_logged.callback(
+     Output(component_id='user', component_property='children'),
+    [Input(component_id='logo', component_property='hidden')]
+    )
+def display_username(hidden_stuff):
+    return html.H3(session['user'])
 
         
         

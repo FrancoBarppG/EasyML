@@ -51,7 +51,7 @@ app_logged_layout = html.Div(children = [
     html.Div(style = {'width': '100vw',
                      'height': '80px'}, 
                     children = [
-                     html.Img(src = '/static/logo2.png', style = {'width': '320px', 'height': '80px'}), 
+                     html.Img(src = '/static/logo2.png', id='logo', style = {'width': '320px', 'height': '80px'}), 
                      html.A(href='/logged/', children = [html.Button('Sair')], style = {'position': 'absolute', 'float': 'right', 'right': '100px', 'top': '20px'})
     ]),
 
@@ -231,6 +231,7 @@ app_logged_layout = html.Div(children = [
             dcc.Tab(label = '', children = [
                 html.Link(rel='stylesheet', href='/static/style.css'),
                 html.H2("Bem vindo ao EasyML"),
+                html.Div(id='user'),
                 html.Pre("""
                         Para usar o sistema, aperte em graph acima
                         Se buscar ajuda, clique aqui
