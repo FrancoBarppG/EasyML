@@ -30,6 +30,7 @@ cursor = users.cursor()
 #        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
 #);
 #""")
+
 #cursor.execute("""
 #CREATE TABLE DATATABLES(
 #        path TEXT NOT NULL,
@@ -321,18 +322,19 @@ def save_table(rows, n_clicks, name):
             return html.H3('Nome já existente, insira outro') 
         
         #Gera senha
-        generated_password = sha256_crypt.encrypt(str(time.time())).replace('/', '')[17:27]
+        generated_password = sha256_crypt.encrypt(str(time.time())).replace('/', '').replace('.','')[20:30]
         
         csv_name = generated_password+'.csv'
+        path = 'database/csv_files/'+csv_name
 
         #Gera csv
         df = pandas.DataFrame(rows)
-        df.to_csv(csv_name, encoding='utf-8', index=False)
+        df.to_csv(path, encoding='utf-8', index=False)
 
         
         
 
-        insert = (csv_name,)
+        insert = (path,)
         query = cursor.execute("""
         SELECT * FROM DATATABLES
         WHERE path=?""",insert)
@@ -340,7 +342,7 @@ def save_table(rows, n_clicks, name):
 
 
         if selection == []:
-            insert = (csv_name,session['user'],name)
+            insert = (path,session['user'],name)
             cursor.execute("""
             INSERT INTO DATATABLES(path,user,name)
             VALUES(?,?,?)""",insert)
