@@ -33,7 +33,8 @@ cursor = users.cursor()
 #cursor.execute("""
 #CREATE TABLE DATATABLES(
 #        path TEXT NOT NULL,
-#        password TEXT NOT NULL,
+#        user TEXT NOT NULL,
+#        name TEXT NOT NULL,
 #        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT
 #);
 #""")
@@ -61,7 +62,6 @@ def index():
 @server.route('/<path:subpath>')
 def index_2(subpath):
     return render_template('index.html')
-
 
 app_logged = Dash(name='loggedapp', server=server)
 app_logged.layout = app_logged_layout
@@ -185,20 +185,20 @@ def deu_boa():
                Input('getcsv_text', 'value'),
                Input('getcsv_button', 'n_clicks')])
 
-def update_output(contents, filename, password, n_clicks):
+def update_datatable(contents, filename, name, n_clicks):
     
-    if n_clicks != None and password.replace(' ','') != '':
+    if n_clicks != None and name.replace(' ','') != '':
         users = sqlite3.connect(os.path.abspath('database/users.db'))
         cursor = users.cursor()
-        insert = (password,)
+        insert = (session['user'],name)
         query = cursor.execute("""
         SELECT path FROM DATATABLES
-        WHERE password=?""",insert)
+        WHERE user=? AND name=?""",insert)
         selection = query.fetchall()
         users.close()
 
         if selection != []:
-            return pandas.read_csv(selection[0][0], encoding='utf-8').fillna(None).to_dict('records')
+            return pandas.read_csv(selection[0][0], encoding='utf-8').to_dict('records')
 
     if contents is not None:
         df = parse_upload_contents(contents, filename)
@@ -249,7 +249,7 @@ def update_children(value):
 
 @app_logged.callback(
     Output(component_id='save_button', component_property='n_clicks'),
-    [Input(component_id='password_text', component_property='value')])
+    [Input(component_id='name_text', component_property='value')])
 
 def reset_button(text):
     return None
@@ -301,48 +301,60 @@ def to_bubble_2(dimensions):
         return 'lines'
 
 @app_logged.callback(
-    Output(component_id='password_div', component_property='children'),
+    Output(component_id='name_div', component_property='children'),
     [Input(component_id='datatable', component_property='rows'),
     Input(component_id='save_button', component_property='n_clicks'),
-    Input(component_id='password_text', component_property='value')])
+    Input(component_id='name_text', component_property='value')])
 
-def save_table(rows, n_clicks, password):
-    if n_clicks != None and password.replace(' ','') != '':
+def save_table(rows, n_clicks, name):
+    if n_clicks != None and name.replace(' ','') != '':
+        users = sqlite3.connect(os.path.abspath('database/users.db'))
+        cursor = users.cursor()
 
-        for filename in os.listdir(os.path.dirname(os.path.abspath(__file__))+'/database/csv_files'):
-            if filename == password+'.csv':
-                return html.H5('Essa senha já foi usada. Escolha outra senha')
+        insert = (session['user'],name)
+        query = cursor.execute("""
+        SELECT * FROM DATATABLES
+        WHERE user=? AND name=?""",insert)
+        selection = query.fetchall()
 
-        #Gera senha
-        generated_password = sha256_crypt.encrypt(str(time.time())).replace('/', '')[17:22]
+        if selection != []:
+            return html.H3('Nome já existente, insira outro') 
         
-        csv_name = 'database/csv_files/{}.csv'.format(password)
+        #Gera senha
+        generated_password = sha256_crypt.encrypt(str(time.time())).replace('/', '')[17:27]
+        
+        csv_name = generated_password+'.csv'
+
         #Gera csv
         df = pandas.DataFrame(rows)
         df.to_csv(csv_name, encoding='utf-8', index=False)
 
-        users = sqlite3.connect(os.path.abspath('database/users.db'))
-        cursor = users.cursor()
+        
+        
 
-        insert = (generated_password,)
+        insert = (csv_name,)
         query = cursor.execute("""
         SELECT * FROM DATATABLES
-        WHERE password=?""",insert)
+        WHERE path=?""",insert)
         selection = query.fetchall() 
 
 
         if selection == []:
-            insert = (csv_name,generated_password)
+            insert = (csv_name,session['user'],name)
             cursor.execute("""
-            INSERT INTO DATATABLES(path,password)
-            VALUES(?,?)""",insert)
+            INSERT INTO DATATABLES(path,user,name)
+            VALUES(?,?,?)""",insert)
             users.commit()
             users.close()
-            return html.H5('Datatable salva! Use essa senha para usar sua tabela novamente: {}'.format(generated_password))
+            return html.H5('Datatable salva! Use a senha colocada para usar sua tabela novamente')
             
         else:
             users.close()
             return html.H5('Erro, por favor pressione o botão de salvar novamente')
+
+    elif n_clicks != None:
+        return html.H5('Insira um nome')
+      
 
 
         
@@ -351,14 +363,7 @@ def save_table(rows, n_clicks, password):
     [Input(component_id='logo', component_property='hidden')]
     )
 def display_username(hidden_stuff):
-    return html.H3(session['user'])
-
-        
-        
-        
-    
-    
-
+    return html.H3(session['user'])        
                
 # Atualiza o gráfico de acordo com a planilha e os outros parâmetros
 @app_logged.callback(
