@@ -13,12 +13,11 @@ import math
 import os
 import time
 import base64
+import operator
 
 from flask import Flask, render_template, flash, request, url_for, redirect, session, g
 import sqlite3
 from passlib.hash import sha256_crypt
-
-
 
 users = sqlite3.connect(os.path.abspath('database/users.db'))
 
@@ -66,6 +65,8 @@ def index_2(subpath):
 
 app_logged = Dash(name='loggedapp', server=server)
 app_logged.layout = app_logged_layout
+app_logged.config.supress_callback_exceptions = True #pra colocar callbacks de ids que podem não existir
+
 
 @server.route('/notlogged/')
 def notlogged():
@@ -183,11 +184,11 @@ def deu_boa():
 @app_logged.callback(Output('datatable', 'rows'),
               [Input('upload_data', 'contents'),
                Input('upload_data', 'filename'),
-               Input('getcsv_text', 'value'),
+               Input('saved_datatables_list', 'value'),
                Input('getcsv_button', 'n_clicks')])
 
 def update_datatable(contents, filename, name, n_clicks):
-    
+    name = name[0]
     if n_clicks != None and name.replace(' ','') != '':
         users = sqlite3.connect(os.path.abspath('database/users.db'))
         cursor = users.cursor()
@@ -356,9 +357,53 @@ def save_table(rows, n_clicks, name):
 
     elif n_clicks != None:
         return html.H5('Insira um nome')
-      
 
 
+@app_logged.callback(
+     Output(component_id='saved_datatables_list', component_property='options'),
+    [Input(component_id='logo', component_property='hidden')]
+    )
+def display_saved_datatables(hidden_stuff):
+    users = sqlite3.connect(os.path.abspath('database/users.db'))
+    cursor = users.cursor()
+
+    insert = (session['user'],)
+    query = cursor.execute("""
+    SELECT name FROM DATATABLES
+    WHERE user=?""",insert)
+    selection = query.fetchall()
+    users.close()
+
+    return [{'label': datatable_name, 'value': datatable_name} for datatable_name in selection]
+
+
+##@app_logged.callback(
+##    Output(component_id='hidden_text_2', component_property='hidden'),                   
+##    [Input('hidden_text', 'hidden')]
+##)
+##def get_length(length):
+##    length = int(length)
+##    print('#############get_length#############')
+##    @app_logged.callback(
+##        Output(component_id='hidden_text_3', component_property='hidden'),
+##        [Input('saved_db_{}'.format(str(i)), 'n_clicks_timestamp') for i in range(length)]
+##    )
+##    def select_saved_database(**kwargs):
+##        print('ccccccccccccccccccccccccccc')
+##        n_clicks_list = [(k, int(v)) for k,v in kwargs.items()]
+##        sorted_n_clicks = sorted(n_clicks_list, key=lambda kv: kv[1])
+##    
+##        clicked_button_id = sorted_n_clicks[len(sorted_n_clicks)-1][0]
+##    
+##        @app_logged.callback(
+##            Output(component_id='getcsv_text', component_property='value'),
+##            [Input(component_id='saved_db_{}'.format(clicked_button_id), component_property='value')]
+##        )
+##        def write_clicked_value(database_name):
+##            return database_name
+##    
+##        return None
+##    return None
         
 @app_logged.callback(
      Output(component_id='user', component_property='children'),

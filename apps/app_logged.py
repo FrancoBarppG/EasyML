@@ -174,8 +174,10 @@ app_logged_layout = html.Div(children = [
 
             html.Button('Save table', id='save_button', style = {'backgroundColor': '#fa9d19', 'color': 'white', 'width': '100%'}),
 
-            dcc.Input(id='getcsv_text', placeholder='Insira o nome colocado para acessar sua tabela...', style = {'width': '100%', 'marginTop': '10px'}),
-            html.Button('Get table', id='getcsv_button', style = {'backgroundColor': '#fa9d19', 'color': 'white', 'width': '100%'})
+            html.Div(id='saved_datatables_div', style={'width': '100%', 'height': '500px', 'overflowX': 'scroll'}, children=[dcc.RadioItems(id='saved_datatables_list', labelClassName='radio-label')]),
+            html.Button('Get table', id='getcsv_button', style = {'backgroundColor': '#fa9d19', 'color': 'white', 'width': '100%'}),
+
+            
     ]),
     
     dcc.Tabs(id='tabs', vertical=False, children = [
@@ -239,7 +241,9 @@ app_logged_layout = html.Div(children = [
                          """),
                 html.Img(src = '/static/miotea.png', style = {'width': '50%', 'height': '50%', 'float': 'right', 'margin': '0', 'padding': '0'}),
 
-                dcc.Textarea(id='hidden_text', value='', style={'display': 'none'})
+                html.Div(id='hidden_text', hidden='', style={'display': 'none'}),
+                html.Div(id='hidden_text_2', hidden='', style={'display': 'none'}),
+                html.Div(id='hidden_text_3', hidden='', style={'display': 'none'})
 
                 ],
 
