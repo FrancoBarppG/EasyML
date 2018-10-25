@@ -65,7 +65,8 @@ def index_2(subpath):
 
 app_logged = Dash(name='loggedapp', server=server)
 app_logged.layout = app_logged_layout
-app_logged.config.supress_callback_exceptions = True #pra colocar callbacks de ids que podem não existir
+app_logged.index_string = app_logged_index_string
+#app_logged.config.supress_callback_exceptions = True #pra colocar callbacks de ids que podem não existir
 
 
 @server.route('/notlogged/')
@@ -181,35 +182,36 @@ def deu_boa():
 #=====================================CALLBACKS=================================
 #===============================================================================
 # Coloca o arquivo de upload na planilha
-@app_logged.callback(Output('datatable', 'rows'),
-              [Input('upload_data', 'contents'),
-               Input('upload_data', 'filename'),
-               Input('saved_datatables_list', 'value'),
-               Input('getcsv_button', 'n_clicks')])
-
-def update_datatable(contents, filename, name, n_clicks):
-    name = name[0]
-    if n_clicks != None and name.replace(' ','') != '':
-        users = sqlite3.connect(os.path.abspath('database/users.db'))
-        cursor = users.cursor()
-        insert = (session['user'],name)
-        query = cursor.execute("""
-        SELECT path FROM DATATABLES
-        WHERE user=? AND name=?""",insert)
-        selection = query.fetchall()
-        users.close()
-
-        if selection != []:
-            return pandas.read_csv(selection[0][0], encoding='utf-8').to_dict('records')
-
-    if contents is not None:
-        df = parse_upload_contents(contents, filename)
-        if df is not None:
-            return df.to_dict('records')
-        else:
-            return [{}]
-    else:
-        return [{}]
+##@app_logged.callback(Output('datatable', 'rows'),
+##              [Input('upload_data', 'contents'),
+##               Input('upload_data', 'filename'),
+##               Input('saved_datatables_list', 'value'),
+##               Input('getcsv_button', 'n_clicks')])
+##
+##def update_datatable(contents, filename, name, n_clicks):
+##    if name != None:
+##        name = name[0]
+##        if n_clicks != None and name.replace(' ','') != '':
+##            users = sqlite3.connect(os.path.abspath('database/users.db'))
+##            cursor = users.cursor()
+##            insert = (session['user'],name)
+##            query = cursor.execute("""
+##            SELECT path FROM DATATABLES
+##            WHERE user=? AND name=?""",insert)
+##            selection = query.fetchall()
+##            users.close()
+##
+##            if selection != []:
+##                return pandas.read_csv(selection[0][0], encoding='utf-8').to_dict('records')
+##
+##    if contents is not None:
+##        df = parse_upload_contents(contents, filename)
+##        if df is not None:
+##            return df.to_dict('records')
+##        else:
+##            return [{}]
+##    else:
+##        return [{}]
 
 
 #Muda o dropdown de algoritmos de simplificação de acordo com as dimesões (2d ou 3d)
@@ -307,9 +309,8 @@ def to_bubble_2(dimensions):
     [Input(component_id='datatable', component_property='rows'),
     Input(component_id='save_button', component_property='n_clicks'),
     Input(component_id='name_text', component_property='value')])
-
-def save_table(rows, n_clicks, name):
-    if n_clicks != None and name.replace(' ','') != '':
+def save_datatable(rows, n_clicks, name):
+    if n_clicks != None and name.replace(' ','') != '' and name != '__new_datatable__':
         users = sqlite3.connect(os.path.abspath('database/users.db'))
         cursor = users.cursor()
 
@@ -357,13 +358,34 @@ def save_table(rows, n_clicks, name):
 
     elif n_clicks != None:
         return html.H5('Insira um nome')
+    
+    elif name == '__new_datatable__':
+        return html.H5('Insira outro nome')
 
+#-------------- callback da lista de datatables salvas ------------#
+##@app_logged.callback(
+##     Output(component_id='saved_datatables_list', component_property='options'),
+##    [Input(component_id='logo', component_property='hidden')]
+##    )
+##def display_saved_datatables(hidden_stuff):
+##    users = sqlite3.connect(os.path.abspath('database/users.db'))
+##    cursor = users.cursor()
+##
+##    insert = (session['user'],)
+##    query = cursor.execute("""
+##    SELECT name FROM DATATABLES
+##    WHERE user=?""",insert)
+##    selection = query.fetchall()
+##    users.close()
+##
+##    return [{'label': datatable_name, 'value': datatable_name} for datatable_name in selection]
 
 @app_logged.callback(
-     Output(component_id='saved_datatables_list', component_property='options'),
-    [Input(component_id='logo', component_property='hidden')]
+     Output(component_id='choose_datatable_select', component_property='options'),
+    [Input(component_id='hidden', component_property='hidden')]
     )
 def display_saved_datatables(hidden_stuff):
+    print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
     users = sqlite3.connect(os.path.abspath('database/users.db'))
     cursor = users.cursor()
 
@@ -373,9 +395,67 @@ def display_saved_datatables(hidden_stuff):
     WHERE user=?""",insert)
     selection = query.fetchall()
     users.close()
+    
+    datatable_options = [{'label': datatable_name[0], 'value': datatable_name[0]} for datatable_name in selection]
+    datatable_options.append({'label': '+', 'value': '__new_datatable__'}) #Criar nova datatable
+    
+    print(datatable_options)
+    return datatable_options
 
-    return [{'label': datatable_name, 'value': datatable_name} for datatable_name in selection]
+@app_logged.callback(
+     Output(component_id='datatable', component_property='rows'),
+    [Input(component_id='choose_datatable_select', component_property='value'),
+     Input(component_id='upload_data', component_property='contents'),
+     Input(component_id='upload_data', component_property='filename'),]
+    )
+def choose_datatable(chosen_datatable, contents, filename):
+    if chosen_datatable != None and chosen_datatable != '__new_datatable__':
+        if chosen_datatable != '__new_datatable__':
+            if chosen_datatable.replace(' ','') != '':
+                users = sqlite3.connect(os.path.abspath('database/users.db'))
+                cursor = users.cursor()
+                insert = (session['user'],chosen_datatable)
+                query = cursor.execute("""
+                SELECT path FROM DATATABLES
+                WHERE user=? AND name=?""",insert)
+                selection = query.fetchall()
+                users.close()
 
+                if selection != []:
+                    return pandas.read_csv(selection[0][0], encoding='utf-8').to_dict('records')
+
+    if contents is not None:
+        df = parse_upload_contents(contents, filename)
+        if df is not None:
+            return df.to_dict('records')
+        else:
+            return [{}]
+    else:
+        return [{}]
+
+@app_logged.callback(
+     Output(component_id='name_new_datatable_div', component_property='style'),
+    [Input(component_id='upload_data', component_property='contents'),
+     Input(component_id='upload_data', component_property='filename'),]
+    )
+def name_new_datatable(contents, filename):
+    print(contents)
+    print(filename)
+    if contents != None and filename != None:
+        return {'width': '600px', 'height': '300px', 'backgroundColor': '#ffffff'}
+    else:
+        return {'display': 'none'}
+
+@app_logged.callback(
+     Output(component_id='choose_datatable', component_property='style'),
+    [Input(component_id='close_choose_datatable', component_property='n_clicks'),
+     Input(component_id='choose_datatable_select', component_property='value')]
+    )
+def close_choose_datatable(n_clicks_close, chosen_datatable):
+    print(n_clicks_close)
+    print(chosen_datatable)
+    if chosen_datatable != None and n_clicks_close != None:
+        return {'display': 'none'}
 
 ##@app_logged.callback(
 ##    Output(component_id='hidden_text_2', component_property='hidden'),                   

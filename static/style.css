@@ -518,14 +518,19 @@ h1{
     margin-left: 30px;
     margin-right: 30px;
     height: 60px;
+    max-width: 300px;
 }
 
-.flex_div{
-    display: flex;
-    flex-flow: column nowrap;
-    justify-content: center;
-    align-items: center;
-    margin: auto;
+.orange_button{
+    background-color: #fa9d19;
+    color: #ffffff;
+    margin: 10px;
+}
+
+.blue_button{
+    background-color: #1975fa;
+    color: #ffffff;
+    margin: 10px;
 }
 
 div > input{
@@ -546,13 +551,13 @@ div > input{
 }
 
 .radio-label{
-  display: inline-block;
-  height: 38px;
-  width: 100%;
+  margin: 20px;
+  height: 100px;
+  width: 30vw;
   padding: 0px;
   color: #555;
   text-align: center;
-  font-size: 11px;
+  font-size: 18px;
   font-weight: 600;
   line-height: 38px;
   letter-spacing: .1rem;
@@ -581,3 +586,98 @@ div > input{
 .radio-label > input[type="radio"]:checked{
     background-color: #1975fa;
 }
+
+.cover_div{
+    min-width: 100vw;
+    min-height: 100vh;
+    display: block;
+    position: fixed;
+    background-color: white;
+    z-index: 9999;
+}
+
+.hidden{
+    display: none;
+}
+
+@-webkit-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@-moz-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+.fade-in {
+  opacity:0;  /* make things invisible upon start */
+  -webkit-animation:fadeIn ease-in 1;  /* call our keyframe named fadeIn, use animattion ease-in and repeat it only 1 time */
+  -moz-animation:fadeIn ease-in 1;
+  animation:fadeIn ease-in 1;
+
+  -webkit-animation-fill-mode:forwards;  /* this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)*/
+  -moz-animation-fill-mode:forwards;
+  animation-fill-mode:forwards;
+
+  -webkit-animation-duration:1s;
+  -moz-animation-duration:1s;
+  animation-duration:1s;
+}
+
+.fade-in.one {
+  -webkit-animation-delay: 0.7s;
+  -moz-animation-delay: 0.7s;
+  animation-delay: 0.7s;
+}
+
+.fade-in.two {
+  -webkit-animation-delay: 1.2s;
+  -moz-animation-delay:1.2s;
+  animation-delay: 1.2s;
+}
+
+@-webkit-keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+@-moz-keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+@keyframes fadeOut { from { opacity:1; } to { opacity:0; } }
+
+.fade-out {
+  opacity:1;
+  -webkit-animation:fadeIn ease-in-out 1;  /* call our keyframe named fadeIn, use animattion ease-in and repeat it only 1 time */
+  -moz-animation:fadeIn ease-in-out 1;
+  animation:fadeIn ease-in-out 1;
+
+  -webkit-animation-fill-mode:forwards;  /* this makes sure that after animation is done we remain at the last keyframe value (opacity: 1)*/
+  -moz-animation-fill-mode:forwards;
+  animation-fill-mode:forwards;
+
+  -webkit-animation-duration:1s;
+  -moz-animation-duration:1s;
+  animation-duration:1s;
+}
+
+.fade-out.one {
+  -webkit-animation-delay: 0.7s;
+  -moz-animation-delay: 0.7s;
+  animation-delay: 0.7s;
+}
+
+.flex_div{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.flex_div.row{
+    flex-direction: row;
+}
+
+.flex_div.column{
+    flex-direction: column;
+}
+
+.flex_div.center{
+    align-items: center;
+    align-content: center;
+    align-self: center;
+}
+
+#name_new_datatable_div{
+    border: 1px solid #bbb;
+    border-radius: 2px;
+}
+
+

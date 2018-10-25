@@ -5,12 +5,12 @@
 
 {% block body %}
 <body class="base_page">
-  <div id="login-div" class="flex_div">
+  <div id="login-div" class="flex_div column center">
       <img src="../static/logo2.png" class="logo">
       
       <h4>Register</h4>
       
-      <form class="flex_div" method="post" action="{{ url_for('deu_boa') }}">
+      <form class="flex_div column center" method="post" action="{{ url_for('deu_boa') }}">
         <h4 style="border:none;">Username: </h4>
         <input id=uname-box type=text name=username value="{{request.form.username}}">
         <h4 style="border:none;">Password: </h4>
