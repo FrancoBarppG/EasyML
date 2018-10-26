@@ -55,6 +55,10 @@ users.close()
 server = Flask(__name__)
 server.secret_key = os.urandom(24)
 
+#Declarando a lista de session
+
+
+
 @server.route('/')
 def index():
     return render_template('index.html')
@@ -85,7 +89,8 @@ def register():
 def logged():
     if request.method == 'POST':
 
-        session.pop('user', None)
+        session['user'] = None
+        session['datatable'] = None
 
         username = request.form['username'].replace(' ','')
         password = request.form['password'].replace(' ','')
@@ -333,15 +338,11 @@ def save_datatable(rows, n_clicks, name):
         df = pandas.DataFrame(rows)
         df.to_csv(path, encoding='utf-8', index=False)
 
-        
-        
-
         insert = (path,)
         query = cursor.execute("""
         SELECT * FROM DATATABLES
         WHERE path=?""",insert)
         selection = query.fetchall() 
-
 
         if selection == []:
             insert = (path,session['user'],name)
@@ -382,9 +383,10 @@ def save_datatable(rows, n_clicks, name):
 
 @app_logged.callback(
      Output(component_id='choose_datatable_select', component_property='options'),
-    [Input(component_id='hidden', component_property='hidden')]
+    [Input(component_id='hidden', component_property='hidden'),
+     Input(component_id='name_div', component_property='children'),]
     )
-def display_saved_datatables(hidden_stuff):
+def display_saved_datatables(hidden_stuff, n_clicks):
     print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
     users = sqlite3.connect(os.path.abspath('database/users.db'))
     cursor = users.cursor()
@@ -409,20 +411,24 @@ def display_saved_datatables(hidden_stuff):
      Input(component_id='upload_data', component_property='filename'),]
     )
 def choose_datatable(chosen_datatable, contents, filename):
-    if chosen_datatable != None and chosen_datatable != '__new_datatable__':
-        if chosen_datatable != '__new_datatable__':
-            if chosen_datatable.replace(' ','') != '':
-                users = sqlite3.connect(os.path.abspath('database/users.db'))
-                cursor = users.cursor()
-                insert = (session['user'],chosen_datatable)
-                query = cursor.execute("""
-                SELECT path FROM DATATABLES
-                WHERE user=? AND name=?""",insert)
-                selection = query.fetchall()
-                users.close()
 
-                if selection != []:
-                    return pandas.read_csv(selection[0][0], encoding='utf-8').to_dict('records')
+    session.pop('datatable', None)
+    session['datatable'] = chosen_datatable
+    if chosen_datatable != None:
+        
+        if chosen_datatable.replace(' ','') != '':
+            users = sqlite3.connect(os.path.abspath('database/users.db'))
+            cursor = users.cursor()
+            insert = (session['user'],chosen_datatable)
+            query = cursor.execute("""
+            SELECT path FROM DATATABLES
+            WHERE user=? AND name=?""",insert)
+            selection = query.fetchall()
+            users.close()
+
+            if selection != []:
+                return pandas.read_csv(selection[0][0], encoding='utf-8').to_dict('records')
+                    
 
     if contents is not None:
         df = parse_upload_contents(contents, filename)
@@ -442,7 +448,7 @@ def name_new_datatable(contents, filename):
     print(contents)
     print(filename)
     if contents != None and filename != None:
-        return {'width': '600px', 'height': '300px', 'backgroundColor': '#ffffff'}
+        return {'width': '80vw', 'backgroundColor': '#ffffff', 'visibility': 'visible'}
     else:
         return {'display': 'none'}
 
@@ -490,7 +496,15 @@ def close_choose_datatable(n_clicks_close, chosen_datatable):
     [Input(component_id='logo', component_property='hidden')]
     )
 def display_username(hidden_stuff):
-    return html.H3(session['user'])        
+    return html.H3(session['user'])
+
+@app_logged.callback(
+     Output(component_id='datatable_name', component_property='children'),
+    [Input(component_id='choose_datatable_select', component_property='value'),
+     Input(component_id='close_choose_datatable', component_property='n_clicks')]
+    )
+def display_username(selected_datatable, n_clicks_close):
+    return html.H3(session['datatable'])
                
 # Atualiza o gráfico de acordo com a planilha e os outros parâmetros
 @app_logged.callback(

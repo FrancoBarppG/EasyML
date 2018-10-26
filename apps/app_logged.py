@@ -89,6 +89,19 @@ app_logged_layout = html.Div(children = [
              children = [
                  
                  html.Img(src = '/static/logo2.png', id='logo_datatable_selection', style = {'width': '320px', 'height': '80px'}),
+
+                 html.Div(style={'width': '80vw', 'visibility': 'hidden'},
+                          children = [ html.Div(id='name_new_datatable_div',
+                                                style={'display':'none'},
+                                                className='flex_div column center',
+                                                children = [
+                                                    html.H3('Insira um nome para criar seu novo projeto'),
+                                                    html.Div(id='name_div'),
+                                                    dcc.Input(id='name_text', placeholder='Insira um nome para salvar sua tabela...', style = {'width': '330px', 'marginTop': '10px'}),
+                                                    html.Button('Save table', id='save_button', className='blue_button', style={'marginTop': '10px'}),
+                                        ])
+                ]),
+                 
                  html.Div([
                     dcc.Upload(
                         id='upload_data',
@@ -111,23 +124,12 @@ app_logged_layout = html.Div(children = [
                         multiple=True
                     )
                  ]),
-                 dcc.RadioItems(id='choose_datatable_select', labelClassName='radio-label', className='flex_div row center', value='__new_datatable__'),
+                 
+                 dcc.RadioItems(id='choose_datatable_select', labelClassName='radio-label', className='flex_div row center'),
                  html.Div(className='flex_div row center', children=[
                      html.Button('go go', id='close_choose_datatable', className='blue_button'),
                      html.Button('criar nova tabela', id='create_new_datatable', className='blue_button'),
-                 ]),
-
-                 html.Div(style={'position':'fixed', 'left':'50vw', 'top': '50vh', 'width': '600px', 'height': '300px'},
-                          children = [ html.Div(id='name_new_datatable_div',
-                                                style={'display':'none'},
-                                                className='flex_div column center',
-                                                children = [
-                                                    html.H3('Insira um nome para criar seu novo projeto'),
-                                                    html.Div(id='name_div'),
-                                                    dcc.Input(id='name_text', placeholder='Insira um nome para salvar sua tabela...', style = {'width': '100%', 'marginTop': '10px'}),
-                                                    html.Button('Save table', id='save_button', className='blue_button', style={'marginTop': '10px'}),
-                                        ])
-                ])
+                 ])
                               
             ]),
     
@@ -290,6 +292,7 @@ app_logged_layout = html.Div(children = [
                 html.Link(rel='stylesheet', href='/static/style.css'),
                 html.H2("Bem vindo ao EasyML"),
                 html.Div(id='user'),
+                html.Div(id='datatable_name'),
                 html.Pre("""
                         Para usar o sistema, aperte em graph acima
                         Se buscar ajuda, clique aqui
