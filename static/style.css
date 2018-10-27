@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Raleway'); /*Fonte default do Skeleton*/
+
 /* Core CSS
  * Taken from https://github.com/adazzle/react-data-grid/blob/75d1348134ea073ca04a5e634863cd5be062fcdf/themes/react-data-grid-core.css
  */
@@ -28,6 +30,7 @@
   border-right: 1px solid #eee;
   border-bottom: 1px solid #dddddd;
   text-align: center;
+  font-family: Helvetica;
 }
 
 /* Header CSS
@@ -144,7 +147,7 @@ body {
   font-size: 1.5em; /* currently ems cause chrome bug misinterpreting rems on body element */
   line-height: 1.6;
   font-weight: 400;
-  font-family: "Open Sans", "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Raleway", "Open Sans", "HelveticaNeue", Helvetica, Arial, sans-serif;
   color: rgb(50, 50, 50); }
 
 
@@ -448,6 +451,7 @@ h4{
     padding: 0 30px;
     color: #555;
     text-align: center;
+    font-family: Helvetica;
     font-size: 13px;
     font-weight: 600;
     line-height: 38px;

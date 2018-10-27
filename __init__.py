@@ -257,13 +257,39 @@ def update_children(value):
          )
 
 @app_logged.callback(
+    Output(component_id='hidden3', component_property='hidden'),
+    [Input(component_id='datatable', component_property='rows')])
+def to_hidden3(text):
+    return '*'
+
+@app_logged.callback(
     Output(component_id='save_button', component_property='n_clicks'),
     [Input(component_id='name_text', component_property='value')])
 
 def reset_button(text):
     return None
 
+@app_logged.callback( 
+    Output(component_id='hidden2', component_property='hidden'),
+    [Input(component_id='save_opened_datatable_button', component_property='n_clicks'),
+    Input(component_id='datatable', component_property='rows')])
+def save_opened_datatable(n_clicks, rows):
+    if n_clicks != None:
+        users = sqlite3.connect(os.path.abspath('database/users.db'))
+        cursor = users.cursor()
 
+        insert = (session['user'],session['datatable'])
+        query = cursor.execute("""
+        SELECT path FROM DATATABLES
+        WHERE user=? AND name=?""",insert)
+        selection = query.fetchall()
+        users.close()
+
+        if selection != []:
+            df = pandas.DataFrame(rows)
+            df.to_csv(selection[0][0], encoding='utf-8', index=False)
+         
+    return 'save_clicked'
 
 #Se for usado marcador, coloca o slider de tamanho do marcador
 @app_logged.callback(
@@ -518,9 +544,11 @@ def display_username(selected_datatable, n_clicks_close):
      Input(component_id='type_marker2', component_property='value'),
      Input(component_id='type_dimensions', component_property='value'),
      Input(component_id='size_bubble1', component_property='value'),
-     Input(component_id='size_bubble2', component_property='value')])
+     Input(component_id='size_bubble2', component_property='value'),
+     Input(component_id='hidden2', component_property='hidden'),
+     Input(component_id='hidden3', component_property='hidden')])
 
-def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2, dimensions, size1, size2):
+def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2, dimensions, size1, size2, hidden2, hidden3):
 
 ##    print('\n---------DEBUG--------------')
 ##    print(n_clicks, repr(n_clicks))
@@ -528,6 +556,8 @@ def update_figure(n_clicks, rows, value, value2, reg_type, mode1, mode2, dimensi
 ##    print(value, repr(value))
 ##    print(value2, repr(n_clicks))
 ##    print(reg_type, repr(reg_type))
+    print('###################')
+    print(rows)
     
     if n_clicks is not None and len(rows[0]) is not 0:
 

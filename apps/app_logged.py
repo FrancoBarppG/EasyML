@@ -79,6 +79,8 @@ app_logged_layout = html.Div(children = [
 
     html.Div(id='hidden2'),
 
+    html.Div(id='hidden3'),
+
     html.Div(id='choose_datatable',
             className='fade-in one cover_div flex_div column',
             style = {'width': '100vw',
@@ -88,7 +90,8 @@ app_logged_layout = html.Div(children = [
                       'backgroundColor': 'white'},
              children = [
                  
-                 html.Img(src = '/static/logo2.png', id='logo_datatable_selection', style = {'width': '320px', 'height': '80px'}),
+                 html.Div(className='flex_div row center',
+                          children = [html.H2('Escolha seu projeto', className='title_choose_datatable')]),
 
                  html.Div(style={'width': '80vw', 'visibility': 'hidden'},
                           children = [ html.Div(id='name_new_datatable_div',
@@ -254,7 +257,8 @@ app_logged_layout = html.Div(children = [
                  searchable = False
              ),
             
-            html.Button('Refresh', id='reg_button', style = {'backgroundColor': '#1975fa', 'color': 'white', 'width': '100%', 'marginTop': '30px'}),
+            html.Button('Refresh', id='reg_button', className='blue_button', style = {'marginTop': '20px'}),
+            html.Button('Save', id='save_opened_datatable_button', className='orange_button', style = {'marginTop': '20px'}),
             
 
             
